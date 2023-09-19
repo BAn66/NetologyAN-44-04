@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">NMedia</string>
+    <string name="description_post_author_avatar">Avatar author posts</string>
+    <string name="description_post_more">Button: show more</string>
+    <string name="description_liked_count">Button: Like</string>
+    <string name="description_shared">Button: Share</string>
+    <string name="description_viewed">Button: Viwed</string>
+    <string name="description_remove">Remove</string>
+    <string name="description_edit">Edit</string>
+    <string name="post_text">Input text</string>
+    <string name="description_save"> Button: Save </string>
+    <string name="edit_message">Edit Message</string>
+    <string name="description_cancel">Cancel edit</string>
+    <string name="error_empty_content">Content can`t be empty DUDE</string>
+    <string name="submit">submit</string>
+    <string name="description_play">play video</string>
+    <string name="channel_remote_name">Server notifications</string>
+    <string name="channel_remote_description">Notifications from remote server</string>
+    <string name="notification_user_like"> User %1$s liked %2$s`s post</string>
+    <string name="notification_user_new_post_tittle">%1$s published new post:</string>
+    <string name="notification_user_new_post"> %1$s </string>
+</resources>

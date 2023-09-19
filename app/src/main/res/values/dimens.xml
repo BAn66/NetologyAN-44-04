@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="common_pudding">16dp</dimen>
+    <dimen name="avatar_size">48dp</dimen>
+    <dimen name="count_pudding">8dp</dimen>
+    <dimen name="fab_margin">4dp</dimen>
+</resources>
