@@ -15,7 +15,7 @@ import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.NewPostFragment.Companion.text
 import ru.netologia.nmedia.databinding.ActivityAppBinding
 
-
+//Проверка работы гита, добавил комментарий в AppActivity
 class AppActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
