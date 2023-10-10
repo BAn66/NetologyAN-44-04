@@ -90,7 +90,8 @@ class NewPostFragment : Fragment(){
         }
 
         // При нажатии системной кнопки назад
-        val callback = requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner){
+//        val callback =
+            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner){
 //            Toast.makeText(context, "Что то происходит", Toast.LENGTH_SHORT).show()
             val tmpContent = if (binding.editTextNewPost.text.isNotBlank()) {
                 binding.editTextNewPost.text.toString()
@@ -109,37 +110,3 @@ class NewPostFragment : Fragment(){
         return binding.root
     }
 }
-
-/** Работа с отдельными активити */
-//package ru.netologia.nmedia.activity
-//
-//import android.app.Activity
-//import android.content.Intent
-//import android.os.Bundle
-//import androidx.appcompat.app.AppCompatActivity
-//import ru.netologia.nmedia.databinding.ActivityNewPostBinding
-//import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
-//
-//class NewPostFragment : AppCompatActivity(){
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        val binding = ActivityNewPostBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
-//        binding.edit.requestFocus()
-//        binding.edit.focusAndShowKeyboard()
-//        binding.ok.setOnClickListener {
-//            val intent = Intent()
-//            if(binding.edit.text.isBlank()){
-//                setResult(Activity.RESULT_CANCELED, intent)
-//            } else {
-//                val content = binding.edit.text.toString()
-//                intent.putExtra(Intent.EXTRA_TEXT, content)
-//                setResult(Activity.RESULT_OK, intent)
-//            }
-//            finish()
-//        }
-//        binding.cancelEdit.setOnClickListener{
-//            finish()
-//        }
-//    }
-//}

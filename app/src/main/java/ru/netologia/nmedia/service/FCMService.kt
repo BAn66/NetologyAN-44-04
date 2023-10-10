@@ -36,15 +36,6 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-//        super.onMessageReceived(message)
-//        message.data["action"]?.let {
-//            when (valueOf(it)) {
-//                LIKE -> handleLike(Gson().fromJson(message.data["content"], Like::class.java))
-//                SHARE -> TODO()
-//                VIEW -> TODO()
-//            }
-//
-//        }
         val action = message.data["action"]
         when (action){
             LIKE.toString() -> handleLike(Gson().fromJson(message.data["content"], Like::class.java))

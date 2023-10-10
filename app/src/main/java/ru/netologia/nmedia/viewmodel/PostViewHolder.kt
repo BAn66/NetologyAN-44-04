@@ -20,8 +20,6 @@ class PostViewHolder(
 
             btnLike.text = eraseZero(post.likes)
             btnLike.isChecked = post.likedByMe
-//            btnLike.setImageResource(if (post.likedByMe) R.drawable.ic_liked_24 else R.drawable.ic_like_24)
-//            countOfLiked.text = eraseZero(post.likes)
             btnShare.text = eraseZero(post.shares)
             btnViews.text = eraseZero(post.views)
 

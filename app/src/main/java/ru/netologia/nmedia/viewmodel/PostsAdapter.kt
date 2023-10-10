@@ -6,12 +6,6 @@ import androidx.recyclerview.widget.ListAdapter
 import ru.netologia.nmedia.databinding.CardPostBinding
 import ru.netologia.nmedia.dto.Post
 
-
-//для еденичный функций норм, но если действий в адаптаре много, лучше интерфейс использовать
-//typealias OnLikeListener = (post: Post) -> Unit //Тип для callback, просто синоним который будет вызван в адаптаре
-//typealias OnShareListener = (post: Post) -> Unit
-//typealias OnRemoveListener = (post: Post) -> Unit
-
 class PostsAdapter(
     private val onIteractionLister: OnIteractionLister
 ) : ListAdapter<Post, PostViewHolder>(PostDiffCallback()) {

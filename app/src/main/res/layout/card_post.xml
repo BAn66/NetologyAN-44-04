@@ -125,34 +125,6 @@
         app:barrierDirection="bottom"
         app:constraint_referenced_ids="video_content" />
 
-    <!--Кнопка картинка с заменой картинки при нажатии-->
-    <!--    <ImageButton-->
-    <!--        android:id="@+id/btnLike"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginTop="@dimen/common_pudding"-->
-    <!--        android:background="@android:color/transparent"-->
-    <!--        android:contentDescription="@string/description_liked_count"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toBottomOf="@id/barrierBottom"-->
-    <!--        app:srcCompat="@drawable/ic_like_24" />-->
-
-    <!--    Кнопка сделанная через чекбокс, стили и колорчек-->
-    <!--    <com.google.android.material.checkbox.MaterialCheckBox-->
-    <!--        android:id="@+id/btnLike"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginTop="@dimen/common_pudding"-->
-    <!--        android:background="@android:color/transparent"-->
-    <!--        android:contentDescription="@string/description_liked_count"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toBottomOf="@id/barrierBottom"-->
-    <!--        android:button="@drawable/ic_like_selector"-->
-    <!--        style="@style/Widget.AppTheme.LikeCheckBox"-->
-    <!--         />-->
-
-    <!--    Кнопка с текстом количеством лайков и меняющимся рисунком-->
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnLike"
         style="@style/Widget.AppTheme.LikeButton"
@@ -171,17 +143,6 @@
         app:layout_constraintTop_toBottomOf="@id/barrierVideo"
         tools:text="@sample/posts.json/data/likedCount"
      />
-
-<!--Данный текст был перемещен в кнопку лайк-->
-<!--    <TextView-->
-<!--        android:id="@+id/countOfLiked"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="@dimen/count_pudding"-->
-<!--        app:layout_constraintStart_toEndOf="@id/btnLike"-->
-<!--        app:layout_constraintTop_toTopOf="@id/btnLike"-->
-<!--        tools:text="@sample/posts.json/data/likedCount" />-->
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnShare"
         style="@style/Widget.AppTheme.LikeButton"
@@ -199,16 +160,6 @@
         app:layout_constraintTop_toBottomOf="@id/barrierVideo"
         tools:text="@sample/posts.json/data/sharedCount" />
 
-<!--Данный текст был перемещен в кнопку share-->
-<!--    <TextView-->
-<!--        android:id="@+id/countOfShared"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="@dimen/count_pudding"-->
-<!--        app:layout_constraintStart_toEndOf="@id/btnShared"-->
-<!--        app:layout_constraintTop_toTopOf="@id/btnShared"-->
-<!--        tools:text="@sample/posts.json/data/sharedCount" />-->
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnViews"
         style="@style/Widget.AppTheme.LikeButton"
@@ -225,27 +176,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/barrierVideo"
         tools:text="@sample/posts.json/data/viewCount" />
-
-<!--    Картинка и количество просмотров переделано в кнопку с текстом-->
-<!--    <TextView-->
-<!--        android:id="@+id/countOfView"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginTop="@dimen/common_pudding"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/barrierBottom"-->
-<!--        tools:text="@sample/posts.json/data/viewCount" />-->
-
-<!--    <ImageView-->
-<!--        android:id="@+id/btnView"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginTop="@dimen/common_pudding"-->
-<!--        android:layout_marginEnd="@dimen/count_pudding"-->
-<!--        android:background="@android:color/transparent"-->
-<!--        android:contentDescription="@string/description_viewed"-->
-<!--        app:layout_constraintEnd_toStartOf="@id/countOfView"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/barrierBottom"-->
-<!--        app:srcCompat="@drawable/ic_viewed_eye_24" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
