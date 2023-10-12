@@ -11,7 +11,7 @@
     <string name="description_save"> Button: Save </string>
     <string name="edit_message">Edit Message</string>
     <string name="description_cancel">Cancel edit</string>
-    <string name="error_empty_content">Content can`t be empty DUDE</string>
+    <string name="error_empty_content">Content empty DUDE</string>
     <string name="submit">submit</string>
     <string name="description_play">play video</string>
     <string name="channel_remote_name">Server notifications</string>
@@ -19,4 +19,6 @@
     <string name="notification_user_like"> User %1$s liked %2$s`s post</string>
     <string name="notification_user_new_post_tittle">%1$s published new post:</string>
     <string name="notification_user_new_post"> %1$s </string>
+    <string name="internet_error">Error of network</string>
+    <string name="retry">RETRY</string>
 </resources>

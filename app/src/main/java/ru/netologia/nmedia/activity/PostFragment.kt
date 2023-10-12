@@ -69,9 +69,9 @@ class PostFragment: Fragment (){
         setFragmentResultListener("requestIdForPostFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val result = bundle.getLong("id")
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
+        viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
             // Работаем с скролвью
-                adapter.submitList(posts.filter {it.id == result })
+                adapter.submitList(feedModelState.posts.filter {it.id == result })
             }
         }
 
