@@ -44,11 +44,11 @@ class NewPostFragment : Fragment(){
             val savedTmpContent = bundle.getString("savedTmpContent")
             binding.editTextNewPost.setText(savedTmpContent)
         }
-
+        var resultId = 0L
         //Для редактирования поста
         setFragmentResultListener("requestIdForNewPostFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
-            val resultId = bundle.getLong("id")
+            resultId = bundle.getLong("id")
             if (resultId != 0L) {
                 val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId }[0].copy()
                 viewModel.edit(resultPost)
@@ -58,9 +58,9 @@ class NewPostFragment : Fragment(){
 
         setFragmentResultListener("requestIdForNewPostFragmentFromPost") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
-            val resultId = bundle.getLong("id")
-            if (resultId != 0L) {
-                val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId }[0].copy()
+            val resultId2 = bundle.getLong("id")
+            if (resultId2 != 0L) {
+                val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId2 }[0].copy()
                 viewModel.edit(resultPost)
                 binding.editTextNewPost.setText(resultPost.content)
             }
@@ -74,7 +74,7 @@ class NewPostFragment : Fragment(){
         binding.ok.setOnClickListener {
             if (binding.editTextNewPost.text.isNotBlank()) {
                 val content = binding.editTextNewPost.text.toString()
-                viewModel.changeContentAndSave(content)
+                viewModel.changeContentAndSave(content, resultId)
                 viewModel.emptyNew()
             } else {
                 Snackbar.make(binding.root, R.string.error_empty_content,
@@ -84,8 +84,11 @@ class NewPostFragment : Fragment(){
                     }.show()
                 return@setOnClickListener
             }
+
 //            возвращаемся на предыдущий фрагмент
-            findNavController().popBackStack(R.id.feedFragment, false)
+            viewModel.postCreated.observe(viewLifecycleOwner){ //Работа с SingleLiveEvent: Остаемся на экране редактирования пока не придет ответ с сервера
+                findNavController().popBackStack(R.id.feedFragment, false)
+            }
 
         }
 

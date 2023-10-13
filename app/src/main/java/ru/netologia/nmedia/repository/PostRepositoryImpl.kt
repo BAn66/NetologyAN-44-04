@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netologia.nmedia.dto.Post
 import java.util.concurrent.TimeUnit
@@ -19,8 +18,8 @@ class PostRepositoryImpl : PostRepository {
     private val postsType :TypeToken<List<Post>> = object : TypeToken<List<Post>>(){}
 
     private companion object{ //НЕ ЗАБУДЬ ЗАПУСТИТЬ СЕРВЕР
-        const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
-//        const val BASE_URL = "http://10.0.2.2:9999/api/"
+//        const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
+        const val BASE_URL = "http://10.0.2.2:9999/api/"
 //        const val BASE_URL = "http://192.168.0.57:9999/api/"
         val jsonType = "application/json".toMediaType()
     }
