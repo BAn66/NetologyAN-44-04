@@ -41,6 +41,7 @@ class FeedFragment : Fragment() {
 
             override fun like(post: Post) {
                 viewModel.likeById(post.id)
+
             }
 
             override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent
@@ -81,7 +82,8 @@ class FeedFragment : Fragment() {
         binding.list.adapter = adapter
         // Работаем с скролвью
         viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
-            val newPost = feedModelState.posts.size > adapter.currentList.size //флаг если добавился новый пост
+            val newPost =
+                feedModelState.posts.size > adapter.currentList.size //флаг если добавился новый пост
 
             // Адаптер для списка постов ROOM
             adapter.submitList(feedModelState.posts) {
@@ -103,7 +105,13 @@ class FeedFragment : Fragment() {
             binding.progress.isVisible = feedModelState.loading
             binding.errorGroup.isVisible = feedModelState.error
             binding.empty.isVisible = feedModelState.empty
+
+            binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу
+                viewModel.load()
+                binding.swiperefresh.isRefreshing = feedModelState.loading
+            }
         }
+
 
         binding.retryButton.setOnClickListener {
             viewModel.load()
@@ -125,7 +133,10 @@ class FeedFragment : Fragment() {
         binding.fab.setOnClickListener {
             setFragmentResultListener("requestTmpContent") { key, bundle ->
                 val tmpContent = bundle.getString("tmpContent")
-                setFragmentResult("requestSavedTmpContent", bundleOf("savedTmpContent" to tmpContent))
+                setFragmentResult(
+                    "requestSavedTmpContent",
+                    bundleOf("savedTmpContent" to tmpContent)
+                )
             }
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
         }
