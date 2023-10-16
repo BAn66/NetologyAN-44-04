@@ -47,12 +47,12 @@ class PostRepositoryImpl : PostRepository {
         return gson.fromJson(responseString, Post::class.java) //из строки объект листа с постами
     }
 
-    override fun likeById(id: Long, likeByMe : Boolean) {
+    override fun likeById(id: Long, likedByMe : Boolean) {
 
         val request: Request = Request.Builder()
             .url("${BASE_URL}/api/posts/$id/likes")
             .run {
-                if (likeByMe) {
+                if (likedByMe) {
                     delete(gson.toJson(id).toRequestBody(jsonType))
                 } else {
                     post(gson.toJson(id).toRequestBody(jsonType))
