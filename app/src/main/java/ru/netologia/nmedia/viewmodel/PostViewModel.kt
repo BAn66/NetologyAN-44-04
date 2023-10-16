@@ -10,6 +10,7 @@ import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.repository.PostRepository
 import ru.netologia.nmedia.repository.PostRepositoryImpl
 import ru.netologia.nmedia.util.SingleLiveEvent
+import java.io.IOException
 import kotlin.concurrent.thread
 
 private val empty = Post(
@@ -18,9 +19,9 @@ private val empty = Post(
     published = 0L,
     content = "",
     likedByMe = false,
-    likes = 0,
-    shares = 0,
-    views = 0,
+    likes = 0L,
+    shares = 0L,
+    views = 0L,
     video = ""
 )
 
@@ -36,8 +37,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val data: LiveData<FeedModelState> = _data
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
-
-    var idCount = 0L
 
     val edited = MutableLiveData(empty)
 
@@ -55,7 +54,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 //Получена ошибка
                 FeedModelState(error = true)
-            }.let(_data::postValue) //или так для красоты, это называется референс
+            }.also(_data::postValue) //или так для красоты, это называется референс
 
 //            _data.postValue( //можно так для красоты
 //            try {
@@ -65,124 +64,87 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 //            } catch (e: Exception) {
 //                //Получена ошибка
 //                FeedModelState(error = true)
-//            }) //или так, это называется референс
+//            })
         }
     }
 
-    fun likeById(id: Long) = repository.likeById(id)
+    fun likeById(id: Long) {
+        thread {
+        repository.likeById(id, repository.getPostById(id).likedByMe)
+            _data.postValue(
+                _data.value?.copy(posts = repository.getAll())
+            )
+        }
+    }
+
     fun shareById(id: Long) = repository.shareById(id)
-    fun removeById(id: Long) = repository.removeById(id)
+    fun removeById(id: Long) {
+        thread {
+            // Оптимистичная модель
+            val old = _data.value?.posts.orEmpty()
+            _data.postValue(
+                _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                    .filter { it.id != id }
+                )
+            )
+            try {
+                repository.removeById(id)
+            } catch (e: IOException) {
+                _data.postValue(_data.value?.copy(posts = old))
+            }
+        }
+    }
 
-    fun changeContentAndSave(content: String, resultId: Long) {
-        thread {  //функция изменения и сохранения в репозитории
-            edited.value?.let { editedPost ->
+    fun changeContentAndSave(content: String) {
+        //функция изменения и сохранения в репозитории
+        edited.value?.let { editedPost ->
+            thread {
                 val text: String = content.trim()//убираем пробелы вначале и конце
-//__________________________________________________________________________________
-//                val posts = repository.getAll().toMutableList()
-//                var postAfterEdited = empty
-//                Log.d("MY LOOOOOOG ", "${resultId}")
-//                if (resultId == 0L) {
-//                    if (editedPost.content != text) {
-//                        postAfterEdited = editedPost.copy(
-//                            id = ((posts.map { it.id }.toMutableList()
-//                                .maxOrNull() //поиск самого большого айди в списке постов
-//                                ?: 0) + 1),
-//                            content = text,
-//                            author = "Me post",
-//                            published = System.currentTimeMillis()
-//                        )
-//                    }
-//                } else {
-//                    postAfterEdited = editedPost.copy(
-//                        id = resultId,
-//                        content = text,
-//                        author = "Me post",
-//                        published = System.currentTimeMillis()
-//                    )
-//                }
-//                Log.d("MY LOOOOOOG ", postAfterEdited.toString())
-//
-//                repository.save(postAfterEdited)
-//                __________________________________________________________________________________
 
-//                if (editedPost.id == 0L) {
-//                    repository.save(
-//                        editedPost.copy(
-//                            id = (posts.map { it.id }.toMutableList()
-//                                .maxOrNull() //поиск самого большого айди в списке постов
-//                                ?: 0) + 1,//Берем макс значения id в списке постов +1
-//                            content = text,
-//                            author = "Me post",
-//                            published = System.currentTimeMillis()
-//                        )
-//                    )
-//                }
-
-//                __________________________________________________________________________________
-//                if (editedPost.content != text) {
-//                    repository.save(
-//                        editedPost.copy(//
-//                            content = text,
-//                            author = "Me post",
-//                            published = System.currentTimeMillis()
-//                        )
-//                    )
-//                }
-//                __________________________________________________________________________________
-                if (resultId == 0L) {
-                    idCount = idCount +1
-                    repository.save(
-                        editedPost.copy(
-//                            id = idCount,
-                            content = text,
-                            author = "Me post",
-                            published = System.currentTimeMillis()
+                if (editedPost.content != text) {
+                    val post = repository.save(
+                            editedPost.copy(
+                                content = text,
+                                author = "me",
+                                published = System.currentTimeMillis()
+                            )
                         )
-                    )
+                    Log.d("МОЙ ЛОГ", post.toString())
+
+                val value = _data.value
+
+                val updatePosts = value?.posts?.map {
+                    if (it.id == editedPost.id) {
+                        post
+                    } else {
+                        it
+                    }
+                }.orEmpty()
+
+                val result = if (value?.posts == updatePosts) {
+                    listOf(post) + updatePosts
+                } else {
+                    updatePosts
                 }
 
+                _data.postValue(
+                    value?.copy(posts = result)
+                )
+                }
+
+                //работа с SingleLiveEvent
+                _postCreated.postValue(Unit)
             }
-//                val post = repository.save(postAfterEdit)
-
-            load() // можно так или как ниже обработать ответ от сервера
-
-//                val value = _data.value
-//
-//                val updatePosts = value?.posts?.map {
-//                    if (it.id == editedPost.id) {
-//                        post
-//                    } else {
-//                        it
-//                    }
-//                }.orEmpty()
-//
-//                val result = if (value?.posts == updatePosts) {
-//                    listOf(post) + updatePosts
-//                } else {
-//                    updatePosts
-//                }
-//
-//                _data.postValue(
-//                    value?.copy(posts = result)
-//                )
-
-
-            _postCreated.postValue(Unit) //работа с SingleLiveEvent
             edited.postValue(empty)
         }
     }
 
     fun edit(post: Post) {
-//        edited.postValue(post)
         edited.value = post
     }
 
     fun emptyNew() {
-//        edited.postValue(empty)
         edited.value = empty
     }
 
-
 }
-
-

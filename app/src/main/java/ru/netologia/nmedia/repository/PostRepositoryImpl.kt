@@ -15,40 +15,54 @@ class PostRepositoryImpl : PostRepository {
         .build()
 
     private val gson = Gson()
-    private val postsType :TypeToken<List<Post>> = object : TypeToken<List<Post>>(){}
+    private val postsType: TypeToken<List<Post>> = object : TypeToken<List<Post>>() {}
 
-    private companion object{ //НЕ ЗАБУДЬ ЗАПУСТИТЬ СЕРВЕР
-//        const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
-        const val BASE_URL = "http://10.0.2.2:9999/api/"
-//        const val BASE_URL = "http://192.168.0.57:9999/api/"
+    private companion object { //НЕ ЗАБУДЬ ЗАПУСТИТЬ СЕРВЕР
+        //const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
+        const val BASE_URL = "http://10.0.2.2:9999"
+        //const val BASE_URL = "http://192.168.0.57:9999"
         val jsonType = "application/json".toMediaType()
     }
 
     override fun getAll(): List<Post> {
         val request = Request.Builder() //запрос
-            .url("${BASE_URL}posts")
+            .url("${BASE_URL}/api/posts")
             .build()
 
         val call = client.newCall(request) //сетевой вызов
         val response = call.execute() //получаем ответ
-        val responseString = response.body?.string()?: error("Body is null") //строка из ответа
+        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
         return gson.fromJson(responseString, postsType) //из строки объект листа с постами
     }
 
-    override fun save(post: Post) : Post {
+    override fun save(post: Post): Post {
         val request = Request.Builder() //запрос
-            .url("${BASE_URL}posts")
+            .url("${BASE_URL}/api/posts")
             .post(gson.toJson(post).toRequestBody(jsonType))
             .build()
 
         val call = client.newCall(request) //сетевой вызов
         val response = call.execute() //получаем ответ
-        val responseString = response.body?.string()?: error("Body is null") //строка из ответа
+        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
         return gson.fromJson(responseString, Post::class.java) //из строки объект листа с постами
     }
 
-    override fun likeById(id: Long) {
-        TODO("Not yet implemented")
+    override fun likeById(id: Long, likeByMe : Boolean) {
+
+        val request: Request = Request.Builder()
+            .url("${BASE_URL}/api/posts/$id/likes")
+            .run {
+                if (likeByMe) {
+                    delete(gson.toJson(id).toRequestBody(jsonType))
+                } else {
+                    post(gson.toJson(id).toRequestBody(jsonType))
+                }
+            }
+            .build()
+
+        client.newCall(request)
+            .execute()
+            .close()
     }
 
     override fun shareById(id: Long) {
@@ -56,12 +70,26 @@ class PostRepositoryImpl : PostRepository {
     }
 
     override fun removeById(id: Long) {
-        TODO("Not yet implemented")
+        val request: Request = Request.Builder()
+            .delete()
+            .url("${BASE_URL}/api/posts/$id")
+            .build()
+
+        client.newCall(request)
+            .execute()
+            .close()
     }
 
 
-
     override fun getPostById(id: Long): Post {
-        TODO("Not yet implemented")
+        val request = Request.Builder()
+            .get()//запрос
+            .url("${BASE_URL}/api/posts/$id")
+            .build()
+
+        val call = client.newCall(request) //сетевой вызов
+        val response = call.execute() //получаем ответ
+        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
+        return gson.fromJson(responseString, Post::class.java)
     }
 }

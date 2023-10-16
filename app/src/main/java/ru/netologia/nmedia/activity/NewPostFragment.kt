@@ -44,11 +44,11 @@ class NewPostFragment : Fragment(){
             val savedTmpContent = bundle.getString("savedTmpContent")
             binding.editTextNewPost.setText(savedTmpContent)
         }
-        var resultId = 0L
+
         //Для редактирования поста
         setFragmentResultListener("requestIdForNewPostFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
-            resultId = bundle.getLong("id")
+            val resultId = bundle.getLong("id")
             if (resultId != 0L) {
                 val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId }[0].copy()
                 viewModel.edit(resultPost)
@@ -74,8 +74,7 @@ class NewPostFragment : Fragment(){
         binding.ok.setOnClickListener {
             if (binding.editTextNewPost.text.isNotBlank()) {
                 val content = binding.editTextNewPost.text.toString()
-                viewModel.changeContentAndSave(content, resultId)
-                viewModel.emptyNew()
+                viewModel.changeContentAndSave(content)
             } else {
                 Snackbar.make(binding.root, R.string.error_empty_content,
                     BaseTransientBottomBar.LENGTH_INDEFINITE
@@ -87,6 +86,7 @@ class NewPostFragment : Fragment(){
 
 //            возвращаемся на предыдущий фрагмент
             viewModel.postCreated.observe(viewLifecycleOwner){ //Работа с SingleLiveEvent: Остаемся на экране редактирования пока не придет ответ с сервера
+                viewModel.load() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
                 findNavController().popBackStack(R.id.feedFragment, false)
             }
 
