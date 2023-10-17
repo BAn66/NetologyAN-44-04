@@ -1,27 +1,30 @@
 package ru.netologia.nmedia.viewmodel
 
 
+
+import android.annotation.SuppressLint
 import android.widget.PopupMenu
 import androidx.constraintlayout.widget.Group
 import androidx.recyclerview.widget.RecyclerView
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.CardPostBinding
 import ru.netologia.nmedia.dto.Post
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class PostViewHolder(
     private val binding: CardPostBinding, private val onIteractionLister: OnIteractionLister
 
 ) : RecyclerView.ViewHolder(binding.root) {
+//    @SuppressLint("SimpleDateFormat")
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            published.text = post.published
+            published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
             content.text = post.content
 
             btnLike.text = eraseZero(post.likes)
             btnLike.isChecked = post.likedByMe
-//            btnLike.setImageResource(if (post.likedByMe) R.drawable.ic_liked_24 else R.drawable.ic_like_24)
-//            countOfLiked.text = eraseZero(post.likes)
             btnShare.text = eraseZero(post.shares)
             btnViews.text = eraseZero(post.views)
 

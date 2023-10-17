@@ -12,7 +12,7 @@
     <string name="description_save"> Сохранить </string>
     <string name="edit_message">Редактиврование сообщения</string>
     <string name="description_cancel">Отмена редактирования</string>
-    <string name="error_empty_content">Чувак, пустого поста не бывает</string>
+    <string name="error_empty_content">Чувак, тут пусто</string>
     <string name="submit">Подтердить</string>
     <string name="description_play">play video</string>
     <string name="channel_remote_name">Уведомления с сервера</string>
@@ -20,5 +20,7 @@
     <string name="notification_user_like">Пользователь %1$s лайкнул пост %2$s</string>
     <string name="notification_user_new_post_tittle">%1$s опубликовал новый пост:</string>
     <string name="notification_user_new_post"> %1$s </string>
+    <string name="internet_error">Ошибка сети</string>
+    <string name="retry">ПОВТОРИТЬ</string>
 
 </resources>

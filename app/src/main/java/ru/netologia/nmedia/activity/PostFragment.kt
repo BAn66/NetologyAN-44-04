@@ -30,7 +30,7 @@ class PostFragment: Fragment (){
         val adapter = PostsAdapter(object : OnIteractionLister {
 
             override fun like(post: Post) {
-                viewModel.likeById(post.id)
+                viewModel.likeById(post.id, post.likedByMe)
             }
 
             override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent
@@ -69,9 +69,9 @@ class PostFragment: Fragment (){
         setFragmentResultListener("requestIdForPostFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val result = bundle.getLong("id")
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
+        viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
             // Работаем с скролвью
-                adapter.submitList(posts.filter {it.id == result })
+                adapter.submitList(feedModelState.posts.filter {it.id == result })
             }
         }
 

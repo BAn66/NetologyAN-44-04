@@ -50,7 +50,7 @@ class NewPostFragment : Fragment(){
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId = bundle.getLong("id")
             if (resultId != 0L) {
-                val resultPost = viewModel.data.value!!.filter { it -> it.id == resultId }[0].copy()
+                val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId }[0].copy()
                 viewModel.edit(resultPost)
                 binding.editTextNewPost.setText(resultPost.content)
             }
@@ -58,9 +58,9 @@ class NewPostFragment : Fragment(){
 
         setFragmentResultListener("requestIdForNewPostFragmentFromPost") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
-            val resultId = bundle.getLong("id")
-            if (resultId != 0L) {
-                val resultPost = viewModel.data.value!!.filter { it -> it.id == resultId }[0].copy()
+            val resultId2 = bundle.getLong("id")
+            if (resultId2 != 0L) {
+                val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId2 }[0].copy()
                 viewModel.edit(resultPost)
                 binding.editTextNewPost.setText(resultPost.content)
             }
@@ -75,7 +75,6 @@ class NewPostFragment : Fragment(){
             if (binding.editTextNewPost.text.isNotBlank()) {
                 val content = binding.editTextNewPost.text.toString()
                 viewModel.changeContentAndSave(content)
-                viewModel.emptyNew()
             } else {
                 Snackbar.make(binding.root, R.string.error_empty_content,
                     BaseTransientBottomBar.LENGTH_INDEFINITE
@@ -84,13 +83,18 @@ class NewPostFragment : Fragment(){
                     }.show()
                 return@setOnClickListener
             }
+
 //            возвращаемся на предыдущий фрагмент
-            findNavController().popBackStack(R.id.feedFragment, false)
+            viewModel.postCreated.observe(viewLifecycleOwner){ //Работа с SingleLiveEvent: Остаемся на экране редактирования пока не придет ответ с сервера
+                viewModel.load() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+                findNavController().popBackStack(R.id.feedFragment, false)
+            }
 
         }
 
         // При нажатии системной кнопки назад
-        val callback = requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner){
+//        val callback =
+            requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner){
 //            Toast.makeText(context, "Что то происходит", Toast.LENGTH_SHORT).show()
             val tmpContent = if (binding.editTextNewPost.text.isNotBlank()) {
                 binding.editTextNewPost.text.toString()
@@ -109,37 +113,3 @@ class NewPostFragment : Fragment(){
         return binding.root
     }
 }
-
-/** Работа с отдельными активити */
-//package ru.netologia.nmedia.activity
-//
-//import android.app.Activity
-//import android.content.Intent
-//import android.os.Bundle
-//import androidx.appcompat.app.AppCompatActivity
-//import ru.netologia.nmedia.databinding.ActivityNewPostBinding
-//import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
-//
-//class NewPostFragment : AppCompatActivity(){
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        val binding = ActivityNewPostBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
-//        binding.edit.requestFocus()
-//        binding.edit.focusAndShowKeyboard()
-//        binding.ok.setOnClickListener {
-//            val intent = Intent()
-//            if(binding.edit.text.isBlank()){
-//                setResult(Activity.RESULT_CANCELED, intent)
-//            } else {
-//                val content = binding.edit.text.toString()
-//                intent.putExtra(Intent.EXTRA_TEXT, content)
-//                setResult(Activity.RESULT_OK, intent)
-//            }
-//            finish()
-//        }
-//        binding.cancelEdit.setOnClickListener{
-//            finish()
-//        }
-//    }
-//}
