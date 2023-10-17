@@ -47,7 +47,7 @@ class PostRepositoryImpl : PostRepository {
         return gson.fromJson(responseString, Post::class.java) //из строки объект листа с постами
     }
 
-    override fun likeById(id: Long, likedByMe : Boolean) {
+    override fun likeById(id: Long, likedByMe : Boolean): Post {
 
         val request: Request = Request.Builder()
             .url("${BASE_URL}/api/posts/$id/likes")
@@ -60,9 +60,12 @@ class PostRepositoryImpl : PostRepository {
             }
             .build()
 
-        client.newCall(request)
+
+
+        val responseString = client.newCall(request)
             .execute()
-            .close()
+            .body?.string() ?: error("Body is null")
+        return gson.fromJson(responseString, Post::class.java) //из строки объект поста
     }
 
     override fun shareById(id: Long) {

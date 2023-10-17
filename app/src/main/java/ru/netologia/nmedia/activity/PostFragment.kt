@@ -30,7 +30,7 @@ class PostFragment: Fragment (){
         val adapter = PostsAdapter(object : OnIteractionLister {
 
             override fun like(post: Post) {
-                viewModel.likeById(post.id)
+                viewModel.likeById(post.id, post.likedByMe)
             }
 
             override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent

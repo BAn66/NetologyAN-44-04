@@ -40,7 +40,7 @@ class FeedFragment : Fragment() {
         val adapter = PostsAdapter(object : OnIteractionLister {
 
             override fun like(post: Post) {
-                viewModel.likeById(post.id)
+                viewModel.likeById(post.id, post.likedByMe)
 
             }
 
