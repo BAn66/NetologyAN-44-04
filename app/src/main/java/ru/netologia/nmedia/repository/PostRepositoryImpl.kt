@@ -32,7 +32,7 @@ class PostRepositoryImpl : PostRepository {
 
     override fun getAll(): List<Post> {
         val request = Request.Builder() //запрос
-            .url("${BASE_URL}/api/posts")
+            .url("${BASE_URL}/api/slow/posts")
             .build()
 
         val call = client.newCall(request) //сетевой вызов
@@ -44,9 +44,10 @@ class PostRepositoryImpl : PostRepository {
     //Асинхронная функция реализации интерфейса
     override fun getAllAsync(callback: PostRepository.RepositoryCallback<List<Post>>) {
         val request = Request.Builder() //запрос
-            .url("${BASE_URL}/api/posts")
+            .url("${BASE_URL}/api/slow/posts")
             .build()
 
+//        enqueuePostRepository(request, postsType, callback)
         client.newCall(request)
             .enqueue(object : Callback {
                 override fun onResponse(call: Call, response: Response) {
@@ -66,9 +67,30 @@ class PostRepositoryImpl : PostRepository {
 
     }
 
+
+
+
+    private fun <T> enqueuePostRepository(request: Request, typePost: Class<T>, callback: PostRepository.RepositoryCallback<T>) {
+        client.newCall(request)
+            .enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    try {
+                        val result = response.body?.string() ?: throw RuntimeException("body is null")
+                        callback.onSuccess(gson.fromJson(result, typePost))
+                    } catch (e: Exception) {
+                        callback.onError(e)
+                    }
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onError(e)
+                }
+            }
+            )
+    }
     override fun save(post: Post): Post {
         val request = Request.Builder() //запрос
-            .url("${BASE_URL}/api/posts")
+            .url("${BASE_URL}/api/slow/posts")
             .post(gson.toJson(post).toRequestBody(jsonType))
             .build()
 
@@ -79,13 +101,18 @@ class PostRepositoryImpl : PostRepository {
     }
 
     override fun savegAsync(post: Post, callback: PostRepository.RepositoryCallback<Post>) {
-        TODO("Not yet implemented")
+        val request = Request.Builder() //запрос
+            .url("${BASE_URL}/api/slow/posts")
+            .post(gson.toJson(post).toRequestBody(jsonType))
+            .build()
+
+        enqueuePostRepository(request, Post::class.java, callback)
     }
 
     override fun likeById(id: Long, likedByMe: Boolean): Post {
 
         val request: Request = Request.Builder()
-            .url("${BASE_URL}/api/posts/$id/likes")
+            .url("${BASE_URL}/api/slow/posts/$id/likes")
             .run {
                 if (likedByMe) {
                     delete(gson.toJson(id).toRequestBody(jsonType))
@@ -102,12 +129,20 @@ class PostRepositoryImpl : PostRepository {
         return gson.fromJson(responseString, Post::class.java) //из строки объект поста
     }
 
-    override fun likeByIdAsync(
-        id: Long,
-        likedByMe: Boolean,
-        callback: PostRepository.RepositoryCallback<Post>
-    ) {
-        TODO("Not yet implemented")
+    override fun likeByIdAsync(id: Long, likedByMe: Boolean, callback: PostRepository.RepositoryCallback<Post>) {
+        val request: Request = Request.Builder()
+            .url("${BASE_URL}/api/slow/posts/$id/likes")
+            .run {
+                if (likedByMe) {
+                    delete(gson.toJson(id).toRequestBody(jsonType))
+                } else {
+                    post(gson.toJson(id).toRequestBody(jsonType))
+                }
+            }
+            .build()
+
+        enqueuePostRepository(request, Post::class.java, callback)
+
     }
 
     //    override fun shareById(id: Long) {
@@ -117,7 +152,7 @@ class PostRepositoryImpl : PostRepository {
     override fun removeById(id: Long) {
         val request: Request = Request.Builder()
             .delete()
-            .url("${BASE_URL}/api/posts/$id")
+            .url("${BASE_URL}/api/slow/posts/$id")
             .build()
 
         client.newCall(request)
@@ -125,14 +160,19 @@ class PostRepositoryImpl : PostRepository {
             .close()
     }
 
-    override fun removeByIdAsync(id: Long) {
-        TODO("Not yet implemented")
+    override fun removeByIdAsync(id: Long, callback: PostRepository.RepositoryCallback<Post>) {
+        val request: Request = Request.Builder()
+            .delete()
+            .url("${BASE_URL}/api/slow/posts/$id")
+            .build()
+
+        enqueuePostRepository(request, Post::class.java, callback)
     }
 
     override fun getPostById(id: Long): Post {
         val request = Request.Builder()
             .get()//запрос
-            .url("${BASE_URL}/api/posts/$id")
+            .url("${BASE_URL}/api/slow/posts/$id")
             .build()
 
         val call = client.newCall(request) //сетевой вызов
