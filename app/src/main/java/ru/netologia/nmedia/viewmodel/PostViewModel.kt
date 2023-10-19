@@ -20,9 +20,10 @@ private val empty = Post(
     content = "",
     likedByMe = false,
     likes = 0L,
-    shares = 0L,
-    views = 0L,
-    video = ""
+    authorAvatar = null
+//    shares = 0L,
+//    views = 0L,
+//    video = ""
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
@@ -45,17 +46,33 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun load() {
-        thread {
-            _data.postValue(FeedModelState(loading = true)) //Начинаем загрузку
-            try {
-                //Данные успешно получены
-                val posts = repository.getAll()
-                FeedModelState(posts = posts, empty = posts.isEmpty())
-            } catch (e: Exception) {
-                //Получена ошибка
-                FeedModelState(error = true)
-            }.also(_data::postValue) //или так для красоты, это называется референс
 
+        _data.postValue(FeedModelState(loading = true)) //Начинаем загрузку
+        //Асинхронный вариант thread не нужен, потому что асинхрон реализован уже в enqueue библиотеки okhttp
+        repository.getAllAsync(object : PostRepository.RepositoryCallback<List<Post>> {
+            override fun onSuccess(result: List<Post>) {
+                _data.postValue(FeedModelState(posts = result, empty = result.isEmpty()))
+            }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModelState(error = true))
+            }
+        })
+    }
+// ----------------------
+//fun load() {
+//            thread {
+//                _data.postValue(FeedModelState(loading = true))
+//            try {
+//                //Данные успешно получены
+//                val posts = repository.getAll()
+//                FeedModelState(posts = posts, empty = posts.isEmpty())
+//            } catch (e: Exception) {
+//                //Получена ошибка
+//                FeedModelState(error = true)
+//            }.also(_data::postValue) //или так для красоты, это называется референс
+//            }}
+//------------------------
 //            _data.postValue( //можно так для красоты
 //            try {
 //                //Данные успешно получены
@@ -65,12 +82,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 //                //Получена ошибка
 //                FeedModelState(error = true)
 //            })
-        }
-    }
+
 
     fun likeById(id: Long, likedByMe: Boolean) {
         thread {
-        val post = repository.likeById(id, likedByMe)
+            val post = repository.likeById(id, likedByMe)
 
             val updatePosts = _data.value?.posts?.map {
                 if (it.id == id) {
@@ -92,7 +108,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun shareById(id: Long) = repository.shareById(id)
+//    fun shareById(id: Long) = repository.shareById(id)
     fun removeById(id: Long) {
         thread {
             // Оптимистичная модель
@@ -118,33 +134,33 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (editedPost.content != text) {
                     val post = repository.save(
-                            editedPost.copy(
-                                content = text,
-                                author = "me",
-                                published = System.currentTimeMillis()
-                            )
+                        editedPost.copy(
+                            content = text,
+                            author = "me",
+                            published = System.currentTimeMillis()
                         )
+                    )
                     Log.d("МОЙ ЛОГ", post.toString())
 
-                val value = _data.value
+                    val value = _data.value
 
-                val updatePosts = value?.posts?.map {
-                    if (it.id == editedPost.id) {
-                        post
+                    val updatePosts = value?.posts?.map {
+                        if (it.id == editedPost.id) {
+                            post
+                        } else {
+                            it
+                        }
+                    }.orEmpty()
+
+                    val result = if (value?.posts == updatePosts) {
+                        listOf(post) + updatePosts
                     } else {
-                        it
+                        updatePosts
                     }
-                }.orEmpty()
 
-                val result = if (value?.posts == updatePosts) {
-                    listOf(post) + updatePosts
-                } else {
-                    updatePosts
-                }
-
-                _data.postValue(
-                    value?.copy(posts = result)
-                )
+                    _data.postValue(
+                        value?.copy(posts = result)
+                    )
                 }
 
                 //работа с SingleLiveEvent

@@ -1,12 +1,17 @@
 package ru.netologia.nmedia.repository
 
+
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import ru.netologia.nmedia.dto.Post
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 class PostRepositoryImpl : PostRepository {
@@ -20,6 +25,7 @@ class PostRepositoryImpl : PostRepository {
     private companion object { //НЕ ЗАБУДЬ ЗАПУСТИТЬ СЕРВЕР
         //const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
         const val BASE_URL = "http://10.0.2.2:9999"
+
         //const val BASE_URL = "http://192.168.0.57:9999"
         val jsonType = "application/json".toMediaType()
     }
@@ -35,6 +41,31 @@ class PostRepositoryImpl : PostRepository {
         return gson.fromJson(responseString, postsType) //из строки объект листа с постами
     }
 
+    //Асинхронная функция реализации интерфейса
+    override fun getAllAsync(callback: PostRepository.RepositoryCallback<List<Post>>) {
+        val request = Request.Builder() //запрос
+            .url("${BASE_URL}/api/posts")
+            .build()
+
+        client.newCall(request)
+            .enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    try {
+                        val body = response.body?.string() ?: throw RuntimeException("body is null")
+                        callback.onSuccess(gson.fromJson(body, postsType))
+                    } catch (e: Exception) {
+                        callback.onError(e)
+                    }
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onError(e)
+                }
+            }
+            )
+
+    }
+
     override fun save(post: Post): Post {
         val request = Request.Builder() //запрос
             .url("${BASE_URL}/api/posts")
@@ -47,7 +78,11 @@ class PostRepositoryImpl : PostRepository {
         return gson.fromJson(responseString, Post::class.java) //из строки объект листа с постами
     }
 
-    override fun likeById(id: Long, likedByMe : Boolean): Post {
+    override fun savegAsync(post: Post, callback: PostRepository.RepositoryCallback<Post>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun likeById(id: Long, likedByMe: Boolean): Post {
 
         val request: Request = Request.Builder()
             .url("${BASE_URL}/api/posts/$id/likes")
@@ -61,16 +96,23 @@ class PostRepositoryImpl : PostRepository {
             .build()
 
 
-
         val responseString = client.newCall(request)
             .execute()
             .body?.string() ?: error("Body is null")
         return gson.fromJson(responseString, Post::class.java) //из строки объект поста
     }
 
-    override fun shareById(id: Long) {
+    override fun likeByIdAsync(
+        id: Long,
+        likedByMe: Boolean,
+        callback: PostRepository.RepositoryCallback<Post>
+    ) {
         TODO("Not yet implemented")
     }
+
+    //    override fun shareById(id: Long) {
+//        TODO("Not yet implemented")
+//    }
 
     override fun removeById(id: Long) {
         val request: Request = Request.Builder()
@@ -83,6 +125,9 @@ class PostRepositoryImpl : PostRepository {
             .close()
     }
 
+    override fun removeByIdAsync(id: Long) {
+        TODO("Not yet implemented")
+    }
 
     override fun getPostById(id: Long): Post {
         val request = Request.Builder()
