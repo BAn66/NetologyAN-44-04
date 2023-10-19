@@ -25,10 +25,7 @@ private val empty = Post(
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-//    //Работа с хранением данных в ROOM
-//    private val repository: PostRepository = PostRepositoryRoomImpl(
-//        AppDb.getInstance(application).postDao
-//    )
+
 
     // Работа с сетевыми запросами
     private val repository: PostRepository = PostRepositoryImpl()
@@ -56,29 +53,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
         })
     }
-// ----------------------
-//fun load() {
-//            thread {
-//                _data.postValue(FeedModelState(loading = true))
-//            try {
-//                //Данные успешно получены
-//                val posts = repository.getAll()
-//                FeedModelState(posts = posts, empty = posts.isEmpty())
-//            } catch (e: Exception) {
-//                //Получена ошибка
-//                FeedModelState(error = true)
-//            }.also(_data::postValue) //или так для красоты, это называется референс
-//            }}
-//------------------------
-//            _data.postValue( //можно так для красоты
-//            try {
-//                //Данные успешно получены
-//                val posts = repository.getAll()
-//                FeedModelState(posts = posts, empty = posts.isEmpty())
-//            } catch (e: Exception) {
-//                //Получена ошибка
-//                FeedModelState(error = true)
-//            })
+
 
 
     fun likeById(id: Long, likedByMe: Boolean) {
@@ -106,28 +81,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         )
-
-//        thread {
-//            val post = repository.likeById(id, likedByMe)
-//
-//            val updatePosts = _data.value?.posts?.map {
-//                if (it.id == id) {
-//                    post
-//                } else {
-//                    it
-//                }
-//            }.orEmpty()
-//
-//            val result = if (_data.value?.posts == updatePosts) {
-//                listOf(post) + updatePosts
-//            } else {
-//                updatePosts
-//            }
-//
-//            _data.postValue(
-//                _data.value?.copy(posts = result)
-//            )
-//        }
     }
 
     //    fun shareById(id: Long) = repository.shareById(id)
@@ -145,25 +98,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(e: Exception) {
-//                _data.postValue(FeedModelState(error = true))
                 _data.postValue(_data.value?.copy(posts = old))
             }
         })
-
-//        thread {
-//            // Оптимистичная модель
-//            val old = _data.value?.posts.orEmpty()
-//            _data.postValue(
-//                _data.value?.copy(posts = _data.value?.posts.orEmpty()
-//                    .filter { it.id != id }
-//                )
-//            )
-//            try {
-//                repository.removeById(id)
-//            } catch (e: IOException) {
-//                _data.postValue(_data.value?.copy(posts = old))
-//            }
-//        }
     }
 
     fun changeContentAndSave(content: String) {
@@ -210,47 +147,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
             edited.postValue(empty)
         }
-
-//        edited.value?.let { editedPost ->
-//            thread {
-//                val text: String = content.trim()//убираем пробелы вначале и конце
-//
-//                if (editedPost.content != text) {
-//                    val post = repository.save(
-//                        editedPost.copy(
-//                            content = text,
-//                            author = "me",
-//                            published = System.currentTimeMillis()
-//                        )
-//                    )
-//                    Log.d("МОЙ ЛОГ", post.toString())
-//
-//                    val value = _data.value
-//
-//                    val updatePosts = value?.posts?.map {
-//                        if (it.id == editedPost.id) {
-//                            post
-//                        } else {
-//                            it
-//                        }
-//                    }.orEmpty()
-//
-//                    val result = if (value?.posts == updatePosts) {
-//                        listOf(post) + updatePosts
-//                    } else {
-//                        updatePosts
-//                    }
-//
-//                    _data.postValue(
-//                        value?.copy(posts = result)
-//                    )
-//                }
-//
-//                //работа с SingleLiveEvent
-//                _postCreated.postValue(Unit)
-//            }
-//            edited.postValue(empty)
-//        }
     }
 
     fun edit(post: Post) {

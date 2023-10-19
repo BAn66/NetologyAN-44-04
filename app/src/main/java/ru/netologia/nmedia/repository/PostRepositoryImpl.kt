@@ -67,9 +67,6 @@ class PostRepositoryImpl : PostRepository {
 
     }
 
-
-
-
     private fun <T> enqueuePostRepository(request: Request, typePost: Class<T>, callback: PostRepository.RepositoryCallback<T>) {
         client.newCall(request)
             .enqueue(object : Callback {
