@@ -1,8 +1,9 @@
 package ru.netologia.nmedia.activity
 
-
-
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,16 +16,21 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView.SmoothScroller
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 
 /** Работа через фрагменты*/
 class FeedFragment : Fragment() {
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -32,7 +38,6 @@ class FeedFragment : Fragment() {
     ): View {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
-
 
         val viewModel: PostViewModel by activityViewModels()
 

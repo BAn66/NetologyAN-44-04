@@ -21,4 +21,6 @@
     <string name="notification_user_new_post"> %1$s </string>
     <string name="internet_error">Error of network</string>
     <string name="retry">RETRY</string>
+    <string name="load">LOAD</string>
+    <string name="description_logo">LOGO</string>
 </resources>
