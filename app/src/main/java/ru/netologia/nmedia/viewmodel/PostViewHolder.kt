@@ -2,13 +2,14 @@ package ru.netologia.nmedia.viewmodel
 
 
 
-import android.annotation.SuppressLint
+
+import android.icu.text.DateFormat.getDateInstance
 import android.widget.PopupMenu
-import androidx.constraintlayout.widget.Group
 import androidx.recyclerview.widget.RecyclerView
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.CardPostBinding
 import ru.netologia.nmedia.dto.Post
+import java.text.DateFormat.getDateInstance
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -25,39 +26,40 @@ class PostViewHolder(
 
             btnLike.text = eraseZero(post.likes)
             btnLike.isChecked = post.likedByMe
-            btnShare.text = eraseZero(post.shares)
-            btnViews.text = eraseZero(post.views)
+//            btnShare.text = eraseZero(post.shares)
+//            btnViews.text = eraseZero(post.views)
 
-            if(post.video == ""){
-              videoGroup.visibility = Group.GONE
-            } else {
-                videoGroup.visibility = Group.VISIBLE
-            }
+//            if(post.video == ""){
+//              videoGroup.visibility = Group.GONE
+//            } else {
+//                videoGroup.visibility = Group.VISIBLE
+//            }
 
 
-            play.setOnClickListener {
-                println("videogroup clicked")
-                onIteractionLister.playVideo(post)
+//            play.setOnClickListener {
+//                println("videogroup clicked")
+//                onIteractionLister.playVideo(post)
+//            }
 
-            }
-            videoHolder.setOnClickListener {
-                println("videogroup clicked")
-                onIteractionLister.playVideo(post)
-            }
-            videoContent.setOnClickListener {
-                println("videogroup clicked")
-                onIteractionLister.playVideo(post)
-            }
+//            videoHolder.setOnClickListener {
+//                println("videogroup clicked")
+//                onIteractionLister.playVideo(post)
+//            }
+
+//            videoContent.setOnClickListener {
+//                println("videogroup clicked")
+//                onIteractionLister.playVideo(post)
+//            }
 
             btnLike.setOnClickListener {
                 println("like clicked")
                 onIteractionLister.like(post)
             }
 
-            btnShare.setOnClickListener {
-                println("share clicked")
-                onIteractionLister.share(post)
-            }
+//            btnShare.setOnClickListener {
+//                println("share clicked")
+//                onIteractionLister.share(post)
+//            }
 
             content.setOnClickListener {
                 println("content clicked")

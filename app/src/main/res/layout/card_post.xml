@@ -84,7 +84,7 @@
         android:id="@+id/video_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="visible"
+        android:visibility="gone"
         app:constraint_referenced_ids="video_content, play, video_holder" />
 
     <VideoView

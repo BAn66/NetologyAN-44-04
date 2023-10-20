@@ -1,6 +1,5 @@
 package ru.netologia.nmedia.activity
-import android.content.Intent
-import android.net.Uri
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -33,17 +32,17 @@ class PostFragment: Fragment (){
                 viewModel.likeById(post.id, post.likedByMe)
             }
 
-            override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent
-                viewModel.shareById(post.id)
-                val intent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, post.content)
-                    type = "text/plain"
-                }
-                val shareIntent =
-                    Intent.createChooser(intent, getString(R.string.description_shared))
-                startActivity(shareIntent)
-            }
+//            override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent
+//                viewModel.shareById(post.id)
+//                val intent = Intent().apply {
+//                    action = Intent.ACTION_SEND
+//                    putExtra(Intent.EXTRA_TEXT, post.content)
+//                    type = "text/plain"
+//                }
+//                val shareIntent =
+//                    Intent.createChooser(intent, getString(R.string.description_shared))
+//                startActivity(shareIntent)
+//            }
 
             override fun remove(post: Post) {
                 viewModel.removeById(post.id)
@@ -54,10 +53,10 @@ class PostFragment: Fragment (){
                 viewModel.edit(post)
             }
 
-            override fun playVideo(post: Post) {
-                val intentV = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
-                startActivity(intentV)
-            }
+//            override fun playVideo(post: Post) {
+//                val intentV = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
+//                startActivity(intentV)
+//            }
 
             override fun openPost(post: Post) {
             }

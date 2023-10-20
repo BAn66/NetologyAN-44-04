@@ -1,8 +1,7 @@
 package ru.netologia.nmedia.activity
 
 
-import android.content.Intent
-import android.net.Uri
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -44,31 +43,32 @@ class FeedFragment : Fragment() {
 
             }
 
-            override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent
-                viewModel.shareById(post.id)
-                val intent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, post.content)
-                    type = "text/plain"
-                }
-//                startActivity(intent) //Более скромный вариант ниже более симпатичный вариант
-                val shareIntent =
-                    Intent.createChooser(intent, getString(R.string.description_shared))
-                startActivity(shareIntent)
-            }
+//            override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent
+//                viewModel.shareById(post.id)
+//                val intent = Intent().apply {
+//                    action = Intent.ACTION_SEND
+//                    putExtra(Intent.EXTRA_TEXT, post.content)
+//                    type = "text/plain"
+//                }
+////                startActivity(intent) //Более скромный вариант ниже более симпатичный вариант
+//                val shareIntent =
+//                    Intent.createChooser(intent, getString(R.string.description_shared))
+//                startActivity(shareIntent)
+//            }
 
             override fun remove(post: Post) {
                 viewModel.removeById(post.id)
+                viewModel.load()
             }
 
             override fun edit(post: Post) {
                 viewModel.edit(post)
             }
 
-            override fun playVideo(post: Post) {
-                val intentV = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
-                startActivity(intentV)
-            }
+//            override fun playVideo(post: Post) {
+//                val intentV = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
+//                startActivity(intentV)
+//            }
 
             override fun openPost(post: Post) {
                 // Здесь мы можем использовать Kotlin экстеншен функцию из fragment-ktx
