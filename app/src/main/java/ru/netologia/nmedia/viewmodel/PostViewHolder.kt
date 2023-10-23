@@ -1,8 +1,7 @@
 package ru.netologia.nmedia.viewmodel
 
 
-
-
+import android.widget.ImageView
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -10,6 +9,7 @@ import com.bumptech.glide.request.RequestOptions
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.CardPostBinding
 import ru.netologia.nmedia.dto.Post
+import ru.netologia.nmedia.enumeration.AttachmentType
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -18,32 +18,46 @@ class PostViewHolder(
     private val binding: CardPostBinding, private val onIteractionLister: OnIteractionLister
 
 ) : RecyclerView.ViewHolder(binding.root) {
-//    @SuppressLint("SimpleDateFormat")
+    //    @SuppressLint("SimpleDateFormat")
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
             published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
             content.text = post.content
 
-            val url = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
+//            if (post.attachment != null) {
+////                videoGroup.visibility = Group.GONE
+////            } else {
+////                videoGroup.visibility = Group.VISIBLE
+//////                videoHolder.visibility = ImageView.VISIBLE
+//            }
+
+            val urlAvatar = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
             Glide.with(avatar)
-                .load(url)
+                .load(urlAvatar)
                 .placeholder(R.drawable.ic_loading_100dp)
                 .error(R.drawable.ic_error_100dp)
                 .timeout(10_000)
                 .apply(RequestOptions().circleCrop()) //делает круглыми аватарки
                 .into(avatar)
 
+            if (post.attachment?.type == AttachmentType.IMAGE) {
+                imageHolder.visibility = ImageView.VISIBLE
+                val urlImages = "http://10.0.2.2:9999/images/${post.attachment.url}"
+                imageHolder.contentDescription = post.attachment.description
+
+                Glide.with(imageHolder)
+                    .load(urlImages)
+                    .placeholder(R.drawable.ic_loading_100dp)
+                    .error(R.drawable.ic_error_100dp)
+                    .timeout(10_000)
+                    .into(imageHolder)
+            }
+
             btnLike.text = eraseZero(post.likes.toLong())
             btnLike.isChecked = post.likedByMe
 //            btnShare.text = eraseZero(post.shares)
 //            btnViews.text = eraseZero(post.views)
-
-//            if(post.video == ""){
-//              videoGroup.visibility = Group.GONE
-//            } else {
-//                videoGroup.visibility = Group.VISIBLE
-//            }
 
 
 //            play.setOnClickListener {
