@@ -3,15 +3,16 @@ package ru.netologia.nmedia.viewmodel
 
 
 
-import android.icu.text.DateFormat.getDateInstance
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.CardPostBinding
 import ru.netologia.nmedia.dto.Post
-import java.text.DateFormat.getDateInstance
 import java.text.SimpleDateFormat
 import java.util.Date
+
 
 class PostViewHolder(
     private val binding: CardPostBinding, private val onIteractionLister: OnIteractionLister
@@ -24,7 +25,16 @@ class PostViewHolder(
             published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
             content.text = post.content
 
-            btnLike.text = eraseZero(post.likes)
+            val url = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
+            Glide.with(avatar)
+                .load(url)
+                .placeholder(R.drawable.ic_loading_100dp)
+                .error(R.drawable.ic_error_100dp)
+                .timeout(10_000)
+                .apply(RequestOptions().circleCrop()) //делает круглыми аватарки
+                .into(avatar)
+
+            btnLike.text = eraseZero(post.likes.toLong())
             btnLike.isChecked = post.likedByMe
 //            btnShare.text = eraseZero(post.shares)
 //            btnViews.text = eraseZero(post.views)
