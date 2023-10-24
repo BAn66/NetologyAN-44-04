@@ -52,6 +52,8 @@ class PostViewHolder(
                     .error(R.drawable.ic_error_100dp)
                     .timeout(10_000)
                     .into(imageHolder)
+            } else if (post.attachment?.type == null){
+                imageHolder.visibility = ImageView.GONE
             }
 
             btnLike.text = eraseZero(post.likes.toLong())
