@@ -1,7 +1,5 @@
 package ru.netologia.nmedia.activity
 
-
-
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +23,7 @@ import ru.netologia.nmedia.viewmodel.PostsAdapter
 
 /** Работа через фрагменты*/
 class FeedFragment : Fragment() {
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -32,7 +31,6 @@ class FeedFragment : Fragment() {
     ): View {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
-
 
         val viewModel: PostViewModel by activityViewModels()
 

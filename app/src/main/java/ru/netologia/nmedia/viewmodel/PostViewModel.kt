@@ -14,11 +14,12 @@ import ru.netologia.nmedia.util.SingleLiveEvent
 private val empty = Post(
     id = 0L,
     author = "",
+    authorAvatar = "",
     published = 0L,
     content = "",
     likedByMe = false,
-    likes = 0L,
-    authorAvatar = null
+    likes = 0,
+    attachment = null
 //    shares = 0L,
 //    views = 0L,
 //    video = ""

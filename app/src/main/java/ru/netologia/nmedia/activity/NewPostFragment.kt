@@ -32,6 +32,7 @@ class NewPostFragment : Fragment(){
     ): View {
         val binding = FragmentNewPostBinding.inflate(layoutInflater)
 
+
         val viewModel: PostViewModel by activityViewModels()
 
         val text = arguments?.text//получение аргументов между фрагментами при создании нового поста из старого в choosere

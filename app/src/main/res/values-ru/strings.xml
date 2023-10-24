@@ -22,5 +22,7 @@
     <string name="notification_user_new_post"> %1$s </string>
     <string name="internet_error">Ошибка сети</string>
     <string name="retry">ПОВТОРИТЬ</string>
+    <string name="load">LOAD</string>
+    <string name="description_logo">LOGO</string>
 
 </resources>

@@ -1,17 +1,19 @@
 package ru.netologia.nmedia.repository
 
-import androidx.lifecycle.LiveData
+//Для ROOM
+
+//import androidx.lifecycle.LiveData
 //import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
-import ru.netologia.nmedia.dao.PostDao
-import ru.netologia.nmedia.dto.Post
-import ru.netologia.nmedia.entity.PostEntity
+//import androidx.lifecycle.map
+//import ru.netologia.nmedia.dao.PostDao
+//import ru.netologia.nmedia.dto.Post
+//import ru.netologia.nmedia.entity.PostEntity
 
 //хранение данных с помощью ROOM
 
-class PostRepositoryRoomImpl(
+//class PostRepositoryRoomImpl(
 //    private val dao: PostDao
-)
+//)
 //    : PostRepository {
 //    override fun getAll(): LiveData<List<Post>> = dao.getAll().map {list ->
 //        list.map{
