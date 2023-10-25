@@ -13,12 +13,14 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView.SmoothScroller
+import okhttp3.internal.wait
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
+import java.lang.Thread.sleep
 
 
 /** Работа через фрагменты*/
@@ -56,7 +58,7 @@ class FeedFragment : Fragment() {
 
             override fun remove(post: Post) {
                 viewModel.removeById(post.id)
-                viewModel.load()
+                viewModel.load() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
             }
 
             override fun edit(post: Post) {

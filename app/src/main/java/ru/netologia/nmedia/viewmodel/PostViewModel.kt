@@ -34,7 +34,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val data: LiveData<FeedModelState> = _data
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
-
     val edited = MutableLiveData(empty)
 
     init {
@@ -42,23 +41,26 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun load() {
-        _data.postValue(FeedModelState(loading = true)) //Начинаем загрузку
-        //Асинхронный вариант thread не нужен, потому что асинхрон реализован уже в enqueue библиотеки okhttp
-        repository.getAllAsync(object : PostRepository.RepositoryCallback<List<Post>> {
+//        _data.postValue(FeedModelState(loading = true)) //Начинаем загрузку в okhttp на фоновом потоке поэтому postValue
+        _data.value =
+            FeedModelState(loading = true) //Начинаем загрузку через value потому что retrofit работает на главном потоке
+        //В Асинхронный вариант thread не нужен, потому что асинхрон реализован уже в enqueue библиотеки okhttp
+        repository.getAllAsync(object : PostRepository.GetAllCallback<List<Post>> {
             override fun onSuccess(result: List<Post>) {
-                _data.postValue(FeedModelState(posts = result, empty = result.isEmpty()))
+//                _data.postValue(FeedModelState(posts = result, empty = result.isEmpty())) // okhttp
+                _data.value = FeedModelState(posts = result, empty = result.isEmpty()) //retrofit
             }
 
             override fun onError(e: Exception) {
-                _data.postValue(FeedModelState(error = true))
+//                _data.postValue(FeedModelState(error = true)) // okhttp
+                _data.value = FeedModelState(error = true) //retrofit
             }
         })
     }
 
 
-
     fun likeById(id: Long, likedByMe: Boolean) {
-        repository.likeByIdAsync(id, likedByMe, object : PostRepository.RepositoryCallback<Post> {
+        repository.likeByIdAsync(id, likedByMe, object : PostRepository.GetAllCallback<Post> {
             override fun onSuccess(result: Post) {
                 val updatePosts = _data.value?.posts?.map {
                     if (it.id == id) {
@@ -89,7 +91,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         // Оптимистичная модель
         val old = _data.value?.posts.orEmpty()
 
-        repository.removeByIdAsync(id, object : PostRepository.RepositoryCallback<Post> {
+        repository.removeByIdAsync(id, object : PostRepository.GetAllCallback<Post> {
             override fun onSuccess(result: Post) {
                 _data.postValue(
                     _data.value?.copy(posts = _data.value?.posts.orEmpty()
@@ -101,6 +103,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             override fun onError(e: Exception) {
                 _data.postValue(_data.value?.copy(posts = old))
             }
+
         })
     }
 
@@ -109,13 +112,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         edited.value?.let { editedPost ->
             val text: String = content.trim()
             if (editedPost.content != text) {
-                repository.savegAsync(
+                repository.saveAsync(
                     editedPost.copy(
                         content = text,
                         author = "me",
                         published = System.currentTimeMillis()
                     ),
-                    object : PostRepository.RepositoryCallback<Post> {
+                    //object : PostRepository.GetAllCallback<Post> {
+                    object : PostRepository.SaveCallback {
+                        //override fun onSuccess(result: Post) {
                         override fun onSuccess(result: Post) {
                             val value = _data.value
 
@@ -127,26 +132,25 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                                 }
                             }.orEmpty()
 
-                            val resultList = if (value?.posts == updatePosts) {
+                            val resultList : List<Post> = if (value?.posts == updatePosts) {
                                 listOf(result) + updatePosts
                             } else {
                                 updatePosts
                             }
 
-                            _data.postValue(
-                                value?.copy(posts = resultList)
-                            )
+                            _data.value = value?.copy(posts = resultList)
+
+                            //работа с SingleLiveEvent
+                            _postCreated.value = Unit
                         }
 
                         override fun onError(e: Exception) {
-                            _data.postValue(FeedModelState(error = true))
+                            _data.value = FeedModelState(error = true)
                         }
                     }
                 )
-                //работа с SingleLiveEvent
-                _postCreated.postValue(Unit)
             }
-            edited.postValue(empty)
+            edited.value = empty
         }
     }
 
