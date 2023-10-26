@@ -27,7 +27,7 @@ class PostRepositoryImpl : PostRepository {
     private val postsType: TypeToken<List<Post>> = object : TypeToken<List<Post>>() {}
 
     private companion object { //НЕ ЗАБУДЬ ЗАПУСТИТЬ СЕРВЕР
-        //const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
+//        const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
         const val BASE_URL = "http://10.0.2.2:9999"
 
         //const val BASE_URL = "http://192.168.0.57:9999"
@@ -48,7 +48,6 @@ class PostRepositoryImpl : PostRepository {
 
     //Асинхронная функция реализации интерфейса
     override fun getAllAsync(callback: PostRepository.GetAllCallback<List<Post>>) {
-
         //Через retrofit
         PostsApi.retrofitService.getAll()
             .enqueue(object : Callback<List<Post>> {
@@ -117,7 +116,6 @@ class PostRepositoryImpl : PostRepository {
             )
     }
 
-    //На okhhtp
     override fun save(post: Post): Post {
         val request = Request.Builder() //запрос
             .url("${BASE_URL}/api/slow/posts")
@@ -131,8 +129,9 @@ class PostRepositoryImpl : PostRepository {
     }
 
     //    На retrofit
-    override fun saveAsync(post: Post, callback: PostRepository.SaveCallback) {
+    override fun saveAsync(post: Post, callback: PostRepository.GetAllCallback<Post>) {
         PostsApi.retrofitService.save(post).enqueue(object : Callback<Post> {
+
             override fun onResponse(call: Call<Post>, response: Response<Post>) {
                 if (response.isSuccessful) {
                     callback.onSuccess(post)

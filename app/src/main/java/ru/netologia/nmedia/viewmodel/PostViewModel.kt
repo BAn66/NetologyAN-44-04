@@ -90,16 +90,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun removeById(id: Long) {
         // Оптимистичная модель
         val old = _data.value?.posts.orEmpty()
-
+        val newResult = _data.value?.copy(posts = _data.value?.posts.orEmpty()
+            .filter { it.id != id })
         repository.removeByIdAsync(id, object : PostRepository.GetAllCallback<Post> {
             override fun onSuccess(result: Post) {
-                _data.postValue(
-                    _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                        .filter { it.id != id }
-                    )
-                )
+                _data.postValue(newResult)
             }
-
             override fun onError(e: Exception) {
                 _data.postValue(_data.value?.copy(posts = old))
             }
@@ -118,9 +114,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                         author = "me",
                         published = System.currentTimeMillis()
                     ),
-                    //object : PostRepository.GetAllCallback<Post> {
-                    object : PostRepository.SaveCallback {
-                        //override fun onSuccess(result: Post) {
+                    object : PostRepository.GetAllCallback<Post> {
                         override fun onSuccess(result: Post) {
                             val value = _data.value
 

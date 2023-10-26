@@ -63,6 +63,7 @@ class FeedFragment : Fragment() {
 
             override fun edit(post: Post) {
                 viewModel.edit(post)
+                viewModel.load()
             }
 
 //            override fun playVideo(post: Post) {

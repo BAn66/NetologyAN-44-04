@@ -21,7 +21,7 @@ android {
 
     buildFeatures{
         viewBinding true
-        buildConfig true //Для логгирования
+        buildConfig true
     }
 
     buildTypes {
@@ -29,14 +29,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders.usesClearTextTraffic = false
-            buildConfigField "String", 'BASE_URL', '"https://netomedia.ru"'
+            buildConfigField "String", "BASE_URL", '"https://netomedia.ru"'
         }
         debug{
             manifestPlaceholders.usesClearTextTraffic = true
-//            minifyEnabled false
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-//            buildConfigField "String", 'BASE_URL', '"http://10.0.2.2:9999"'
-            buildConfigField "String", "BASE_URL", "\"http://10.0.2.2:9999\""
+            buildConfigField "String", "BASE_URL", '"http://10.0.2.2:9999"'
         }
     }
     compileOptions {
@@ -84,7 +81,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.2.3"))
     implementation "com.google.firebase:firebase-messaging-ktx"
     implementation "com.google.android.gms:play-services-base:$play_services_base_version"
-    implementation "com.squareup.okhttp3:okhttp:$okkhttp_version" //Для запросов по http
+//    implementation "com.squareup.okhttp3:okhttp:$okkhttp_version" //Для запросов по http//retrofit за собой тянет можно убрать
     implementation "com.squareup.okhttp3:logging-interceptor:$okkhttp_logging_version" //Для логгирования
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:$swiperefresh_version"
     implementation "com.github.bumptech.glide:glide:$glide_version"//Для Glide даунлодер изображений

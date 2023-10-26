@@ -1,6 +1,7 @@
 package ru.netologia.nmedia.api
 
-import com.google.firebase.BuildConfig
+
+import com.google.firebase.ktx.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -12,11 +13,10 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import ru.netologia.nmedia.dto.Post
-import ru.netologia.nmedia.repository.PostRepository
-import kotlin.math.log
+
 
 private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
-//private const val BASE_URL = "${BuildConfig.BASE_URL}/api/slow/"
+//private const val BASE_URL = "${BuildConfig.}/api/slow/"
 
 interface PostsApiService {
     @GET("posts")
@@ -31,9 +31,7 @@ interface PostsApiService {
 
     @POST("posts")
     fun save(@Body post: Post): Call<Post>
-
-    @POST("posts")
-    fun saveAsync(post: Post, callback: PostRepository.SaveCallback):Call<Unit>
+//    fun saveAsync(post: Post, callback: PostRepository.SaveCallback)
 
     @DELETE("posts/{id}")
     fun removeById(@Path("id")id: Long): Call<Unit>
@@ -44,9 +42,9 @@ interface PostsApiService {
 
 //логгер
 val logger = HttpLoggingInterceptor().apply {
-//    if (BuildConfig.DEBUG){
+    if (BuildConfig.DEBUG){
         level = HttpLoggingInterceptor.Level.BODY
-//    }
+    }
 }
 val client = OkHttpClient.Builder().addInterceptor(logger).build()
 
