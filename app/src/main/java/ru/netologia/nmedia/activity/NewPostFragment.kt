@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -38,6 +39,18 @@ class NewPostFragment : Fragment(){
         val text = arguments?.text//получение аргументов между фрагментами при создании нового поста из старого в choosere
         if (text !=null){
             binding.editTextNewPost.setText(text)
+        }
+
+        fun toastErrMess(){
+            if (viewModel.errorMessage.first !=0) {
+                Toast.makeText(
+                    context,
+                    "Что то пошло не так! Ошибка запроса:${viewModel.errorMessage.first} - ${viewModel.errorMessage.second} ",
+                    Toast.LENGTH_SHORT
+                ).show()
+                viewModel.errorMessage = Pair(0, "")
+                findNavController().popBackStack(R.id.feedFragment, false)
+            }
         }
 
 //        Для загрузки черновика
@@ -76,6 +89,7 @@ class NewPostFragment : Fragment(){
             if (binding.editTextNewPost.text.isNotBlank()) {
                 val content = binding.editTextNewPost.text.toString()
                 viewModel.changeContentAndSave(content)
+                toastErrMess()
             } else {
                 Snackbar.make(binding.root, R.string.error_empty_content,
                     BaseTransientBottomBar.LENGTH_INDEFINITE

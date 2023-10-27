@@ -9,6 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.DELETE
+import retrofit2.http.Field
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -21,30 +22,25 @@ private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
 interface PostsApiService {
     @GET("posts")
     fun getAll(): Call<List<Post>>
-    //    fun getAllAsync(callback: PostRepository.RepositoryCallback<List<Post>>)
 
     @POST("posts/{id}/likes")
-    fun likeById(@Path("id") id: Long, @Path("likedByMe") likedByMe: Boolean): Call<Post>
-    //    fun likeByIdAsync(id: Long, likedByMe: Boolean, callback: PostRepository.RepositoryCallback<Post>)
+    fun likeByIdPost(@Path("id") id: Long): Call<Post>
 
-    //    fun shareById(id: Long)
+    @DELETE("posts/{id}/likes")
+    fun likeByIdDelete(@Path("id") id: Long): Call<Post>
 
     @POST("posts")
     fun save(@Body post: Post): Call<Post>
-//    fun saveAsync(post: Post, callback: PostRepository.SaveCallback)
 
     @DELETE("posts/{id}")
     fun removeById(@Path("id")id: Long): Call<Unit>
-    //    fun removeByIdAsync(id: Long , callback: PostRepository.RepositoryCallback<Post>)
-
-    fun getPostById(id: Long): Post
 }
 
 //логгер
 val logger = HttpLoggingInterceptor().apply {
-    if (BuildConfig.DEBUG){
+//    if (BuildConfig.DEBUG){
         level = HttpLoggingInterceptor.Level.BODY
-    }
+//    }
 }
 val client = OkHttpClient.Builder().addInterceptor(logger).build()
 

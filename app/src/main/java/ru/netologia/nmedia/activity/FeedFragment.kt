@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -17,6 +18,7 @@ import okhttp3.internal.wait
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
 import ru.netologia.nmedia.dto.Post
+import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
@@ -36,11 +38,23 @@ class FeedFragment : Fragment() {
 
         val viewModel: PostViewModel by activityViewModels()
 
+        fun toastErrMess(feedModelState: FeedModelState){
+            if (feedModelState.error) {
+                Toast.makeText(
+                    context,
+                    "Что то пошло не так! Ошибка запроса:${viewModel.errorMessage.first} - ${viewModel.errorMessage.second} ",
+                    Toast.LENGTH_SHORT
+                ).show()
+                viewModel.errorMessage = Pair(0, "")
+                viewModel.load()
+            }
+        }
         val adapter = PostsAdapter(object : OnIteractionLister {
+
+
 
             override fun like(post: Post) {
                 viewModel.likeById(post.id, post.likedByMe)
-
             }
 
 //            override fun share(post: Post) { //создаем актвити Chooser для расшаривания текста поста через Intent
@@ -80,9 +94,12 @@ class FeedFragment : Fragment() {
             }
         })
 
+
+
         binding.list.adapter = adapter
         // Работаем с скролвью
         viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
+            toastErrMess(feedModelState) //Вывод тоста при ошибке передачи данных с сервера
             val newPost =
                 feedModelState.posts.size > adapter.currentList.size //флаг если добавился новый пост
 
@@ -104,7 +121,7 @@ class FeedFragment : Fragment() {
 //            adapter.submitList(feedModelState.posts)
 
             binding.progress.isVisible = feedModelState.loading
-            binding.errorGroup.isVisible = feedModelState.error
+//            binding.errorGroup.isVisible = feedModelState.error
             binding.empty.isVisible = feedModelState.empty
 
             binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу

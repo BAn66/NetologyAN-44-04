@@ -1,6 +1,8 @@
 package ru.netologia.nmedia.repository
 
 
+import android.content.Context
+import android.widget.Toast
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 //import okhttp3.Call
@@ -25,13 +27,18 @@ class PostRepositoryImpl : PostRepository {
 
     private val gson = Gson()
     private val postsType: TypeToken<List<Post>> = object : TypeToken<List<Post>>() {}
+    private var responseErrMess : Pair<Int, String> = Pair(0, "")
 
     private companion object { //НЕ ЗАБУДЬ ЗАПУСТИТЬ СЕРВЕР
-//        const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
+        //        const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
         const val BASE_URL = "http://10.0.2.2:9999"
 
         //const val BASE_URL = "http://192.168.0.57:9999"
         val jsonType = "application/json".toMediaType()
+    }
+
+    override fun getErrMess(): Pair<Int, String>{
+        return responseErrMess
     }
 
     override fun getAll(): List<Post> {
@@ -48,7 +55,7 @@ class PostRepositoryImpl : PostRepository {
 
     //Асинхронная функция реализации интерфейса
     override fun getAllAsync(callback: PostRepository.GetAllCallback<List<Post>>) {
-        //Через retrofit
+        //Через retrofit при положительных ответах
         PostsApi.retrofitService.getAll()
             .enqueue(object : Callback<List<Post>> {
                 override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
@@ -57,6 +64,7 @@ class PostRepositoryImpl : PostRepository {
                             response.body() ?: throw RuntimeException("body is empty")
                         )
                     } else {
+                        responseErrMess = Pair(response.code(), response.message())
                         callback.onError(RuntimeException("error code:${response.code()} with ${response.message()}"))
                     }
                 }
@@ -65,6 +73,24 @@ class PostRepositoryImpl : PostRepository {
                     callback.onError(Exception(t))
                 }
             })
+
+//        //Через retrofit при положительных ответах
+//        PostsApi.retrofitService.getAll()
+//            .enqueue(object : Callback<List<Post>> {
+//                override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
+//                    if (response.isSuccessful) {
+//                        callback.onSuccess(
+//                            response.body() ?: throw RuntimeException("body is empty")
+//                        )
+//                    } else {
+//                        callback.onError(RuntimeException("error code:${response.code()} with ${response.message()}"))
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<List<Post>>, t: Throwable) {
+//                    callback.onError(Exception(t))
+//                }
+//            })
 
 
         //Через okhttp
@@ -91,6 +117,7 @@ class PostRepositoryImpl : PostRepository {
 //            )
 
     }
+
 
     private fun <T> enqueuePostRepository(
         request: Request,
@@ -131,7 +158,6 @@ class PostRepositoryImpl : PostRepository {
     //    На retrofit
     override fun saveAsync(post: Post, callback: PostRepository.GetAllCallback<Post>) {
         PostsApi.retrofitService.save(post).enqueue(object : Callback<Post> {
-
             override fun onResponse(call: Call<Post>, response: Response<Post>) {
                 if (response.isSuccessful) {
                     callback.onSuccess(post)
@@ -179,20 +205,52 @@ class PostRepositoryImpl : PostRepository {
     override fun likeByIdAsync(
         id: Long,
         likedByMe: Boolean,
-        callback: PostRepository.GetAllCallback<Post>
+        callback: PostRepository.SaveCallback
     ) {
-        val request: Request = Request.Builder()
-            .url("${BASE_URL}/api/slow/posts/$id/likes")
-            .run {
-                if (likedByMe) {
-                    delete(gson.toJson(id).toRequestBody(jsonType))
-                } else {
-                    post(gson.toJson(id).toRequestBody(jsonType))
+        if (likedByMe) {
+            PostsApi.retrofitService.likeByIdDelete(id).enqueue(object : Callback<Post> {
+                override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                    if (response.isSuccessful) {
+                        callback.onSuccess(Unit)
+                    } else {
+                        callback.onError(RuntimeException("error code:${response.code()} with ${response.message()}"))
+                    }
                 }
-            }
-            .build()
 
-        enqueuePostRepository(request, Post::class.java, callback)
+                override fun onFailure(call: Call<Post>, t: Throwable) {
+                    callback.onError(Exception(t))
+                }
+
+            })
+        } else {
+            PostsApi.retrofitService.likeByIdPost(id).enqueue(object : Callback<Post> {
+                override fun onResponse(call: Call<Post>, response: Response<Post>) {
+                    if (response.isSuccessful) {
+                        callback.onSuccess(Unit)
+                    } else {
+                        callback.onError(RuntimeException("error code:${response.code()} with ${response.message()}"))
+                    }
+                }
+
+                override fun onFailure(call: Call<Post>, t: Throwable) {
+                    callback.onError(Exception(t))
+                }
+
+            })
+        }
+
+//        val request: Request = Request.Builder()
+//            .url("${BASE_URL}/api/slow/posts/$id/likes")
+//            .run {
+//                if (likedByMe) {
+//                    delete(gson.toJson(id).toRequestBody(jsonType))
+//                } else {
+//                    post(gson.toJson(id).toRequestBody(jsonType))
+//                }
+//            }
+//            .build()
+//
+//        enqueuePostRepository(request, Post::class.java, callback)
 
     }
 
@@ -211,24 +269,40 @@ class PostRepositoryImpl : PostRepository {
             .close()
     }
 
-    override fun removeByIdAsync(id: Long, callback: PostRepository.GetAllCallback<Post>) {
-        val request: Request = Request.Builder()
-            .delete()
-            .url("${BASE_URL}/api/slow/posts/$id")
-            .build()
+    override fun removeByIdAsync(id: Long, callback: PostRepository.SaveCallback) {
 
-        enqueuePostRepository(request, Post::class.java, callback)
+        PostsApi.retrofitService.removeById(id).enqueue(object : Callback<Unit> {
+            override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
+                if (response.isSuccessful) {
+                    callback.onSuccess(Unit)
+                } else {
+                    callback.onError(RuntimeException("error code:${response.code()} with ${response.message()}"))
+                }
+            }
+
+            override fun onFailure(call: Call<Unit>, t: Throwable) {
+                callback.onError(Exception(t))
+            }
+
+        })
+
+//        val request: Request = Request.Builder()
+//            .delete()
+//            .url("${BASE_URL}/api/slow/posts/$id")
+//            .build()
+//
+//        enqueuePostRepository(request, Post::class.java, callback)
     }
 
-    override fun getPostById(id: Long): Post {
-        val request = Request.Builder()
-            .get()//запрос
-            .url("${BASE_URL}/api/slow/posts/$id")
-            .build()
-
-        val call = client.newCall(request) //сетевой вызов
-        val response = call.execute() //получаем ответ
-        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
-        return gson.fromJson(responseString, Post::class.java)
-    }
+//    override fun getPostById(id: Long): Post {
+//        val request = Request.Builder()
+//            .get()//запрос
+//            .url("${BASE_URL}/api/slow/posts/$id")
+//            .build()
+//
+//        val call = client.newCall(request) //сетевой вызов
+//        val response = call.execute() //получаем ответ
+//        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
+//        return gson.fromJson(responseString, Post::class.java)
+//    }
 }
