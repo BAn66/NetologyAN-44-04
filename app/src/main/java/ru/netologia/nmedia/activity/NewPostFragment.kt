@@ -55,12 +55,14 @@ class NewPostFragment : Fragment(){
 
 //        Для загрузки черновика
         setFragmentResultListener("requestSavedTmpContent") { key, bundle ->
+            toastErrMess()
             val savedTmpContent = bundle.getString("savedTmpContent")
             binding.editTextNewPost.setText(savedTmpContent)
         }
 
         //Для редактирования поста
         setFragmentResultListener("requestIdForNewPostFragment") { key, bundle ->
+            toastErrMess()
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId = bundle.getLong("id")
             if (resultId != 0L) {
@@ -71,6 +73,7 @@ class NewPostFragment : Fragment(){
         }
 
         setFragmentResultListener("requestIdForNewPostFragmentFromPost") { key, bundle ->
+            toastErrMess()
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId2 = bundle.getLong("id")
             if (resultId2 != 0L) {
