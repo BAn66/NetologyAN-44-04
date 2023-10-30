@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -40,14 +41,28 @@ class NewPostFragment : Fragment(){
             binding.editTextNewPost.setText(text)
         }
 
+        fun toastErrMess(){
+            if (viewModel.errorMessage.first !=0) {
+                Toast.makeText(
+                    context,
+                    "Что то пошло не так! Ошибка запроса:${viewModel.errorMessage.first} - ${viewModel.errorMessage.second} ",
+                    Toast.LENGTH_SHORT
+                ).show()
+                viewModel.errorMessage = Pair(0, "")
+                findNavController().popBackStack(R.id.feedFragment, false)
+            }
+        }
+
 //        Для загрузки черновика
         setFragmentResultListener("requestSavedTmpContent") { key, bundle ->
+            toastErrMess()
             val savedTmpContent = bundle.getString("savedTmpContent")
             binding.editTextNewPost.setText(savedTmpContent)
         }
 
         //Для редактирования поста
         setFragmentResultListener("requestIdForNewPostFragment") { key, bundle ->
+            toastErrMess()
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId = bundle.getLong("id")
             if (resultId != 0L) {
@@ -58,6 +73,7 @@ class NewPostFragment : Fragment(){
         }
 
         setFragmentResultListener("requestIdForNewPostFragmentFromPost") { key, bundle ->
+            toastErrMess()
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId2 = bundle.getLong("id")
             if (resultId2 != 0L) {
@@ -76,6 +92,7 @@ class NewPostFragment : Fragment(){
             if (binding.editTextNewPost.text.isNotBlank()) {
                 val content = binding.editTextNewPost.text.toString()
                 viewModel.changeContentAndSave(content)
+                toastErrMess()
             } else {
                 Snackbar.make(binding.root, R.string.error_empty_content,
                     BaseTransientBottomBar.LENGTH_INDEFINITE

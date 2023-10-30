@@ -103,8 +103,9 @@ class PostViewHolder(
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
                             R.id.remove -> {
-                                onIteractionLister.remove(post) //вызов колбэка
+                                onIteractionLister.remove(post)
                                 true
+
                             }
 
                             R.id.edit -> {
