@@ -66,6 +66,7 @@ class NewPostFragment : Fragment(){
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId = bundle.getLong("id")
             if (resultId != 0L) {
+                TODO("Что то тут ломается с редактированием...проблема с массивом/ попробовать через гетпостбайайди/")
                 val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId }[0].copy()
                 viewModel.edit(resultPost)
                 binding.editTextNewPost.setText(resultPost.content)
