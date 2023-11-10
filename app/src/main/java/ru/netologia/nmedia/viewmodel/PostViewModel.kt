@@ -31,7 +31,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
 
     // Работа с сетевыми запросами
-    private val repository: PostRepository = PostRepositoryImpl()
+    private val repository: PostRepository = PostRepositoryImpl() // в продакшене так лучше не делать, а переносить обявление репозитория в конструктор.
     private val _data = MutableLiveData(FeedModelState())
     val data: LiveData<FeedModelState> = _data
     private val _postCreated = SingleLiveEvent<Unit>()

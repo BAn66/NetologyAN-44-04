@@ -19,7 +19,7 @@ data class Post(
     @Override
     override fun toString(): String {
         return "id = $id , author = $author, content = $content ,published = $published, likes = $likes,likedByMe = $likedByMe, authorAvatar = $authorAvatar"
-//               + "authorAvatar = $authorAvatar, shares = $shares, views = $views"
+//               + ", shares = $shares, views = $views"
     }
 }
 

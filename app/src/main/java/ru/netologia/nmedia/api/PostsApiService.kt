@@ -21,7 +21,7 @@ private const val BASE_URL = "${BuildConfig.BASE_URL}/api/slow/"
 
 interface PostsApiService {
     @GET("posts")
-    fun getAll(): Call<List<Post>>
+   fun getAll(): Call<List<Post>>
 
     @POST("posts/{id}/likes")
     fun likeByIdPost(@Path("id") id: Long): Call<Post>
