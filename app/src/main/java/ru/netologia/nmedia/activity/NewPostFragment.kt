@@ -16,6 +16,7 @@ import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentNewPostBinding
+import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
 import ru.netologia.nmedia.util.StringArg
 import ru.netologia.nmedia.viewmodel.PostViewModel
@@ -42,13 +43,16 @@ class NewPostFragment : Fragment(){
         }
 
         fun toastErrMess(){
-            if (viewModel.errorMessage.first !=0) {
-                Toast.makeText(
-                    context,
-                    "Что то пошло не так! Ошибка запроса:${viewModel.errorMessage.first} - ${viewModel.errorMessage.second} ",
-                    Toast.LENGTH_SHORT
-                ).show()
-                viewModel.errorMessage = Pair(0, "")
+            if (viewModel.dataState.value!!.error) {
+                Snackbar.make(
+                    binding.root,
+                    "Ошибка : ${viewModel.errorMessage.first} - ${viewModel.errorMessage.second}",
+//                    R.string.error_loading,
+                    Snackbar.LENGTH_LONG
+                )
+                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                    .show()
+//                viewModel.errorMessage = Pair(0, "")
                 findNavController().popBackStack(R.id.feedFragment, false)
             }
         }
@@ -66,7 +70,6 @@ class NewPostFragment : Fragment(){
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId = bundle.getLong("id")
             if (resultId != 0L) {
-                TODO("Что то тут ломается с редактированием...проблема с массивом/ попробовать через гетпостбайайди/")
                 val resultPost = viewModel.data.value?.posts!!.filter { it -> it.id == resultId }[0].copy()
                 viewModel.edit(resultPost)
                 binding.editTextNewPost.setText(resultPost.content)
@@ -105,7 +108,8 @@ class NewPostFragment : Fragment(){
 
 //            возвращаемся на предыдущий фрагмент
             viewModel.postCreated.observe(viewLifecycleOwner){ //Работа с SingleLiveEvent: Остаемся на экране редактирования пока не придет ответ с сервера
-                viewModel.loadPosts() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+                viewModel.loadPosts()// не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+                toastErrMess()
                 findNavController().popBackStack(R.id.feedFragment, false)
             }
 

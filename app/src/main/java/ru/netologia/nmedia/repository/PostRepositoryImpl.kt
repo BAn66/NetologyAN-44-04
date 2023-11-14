@@ -29,49 +29,69 @@ import ru.netologia.nmedia.entity.toEntity
 import ru.netologia.nmedia.error.*
 
 
-class PostRepositoryImpl (private val dao: PostDao) : PostRepository {
-    override val data = dao.getAll().map(List<PostEntity>::toDto)
+class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
+    override val data = dao.getAll().map(List<PostEntity>::toDto) //Берем текущую локальную БД
 
-    private var responseErrMess : Pair<Int, String> = Pair(0, "")
-    override fun getErrMess(): Pair<Int, String>{
+    private var responseErrMess: Pair<Int, String> = Pair(0, "")
+    override fun getErrMess(): Pair<Int, String> {
         return responseErrMess
     }
-
 
 
     override suspend fun getAll() {
         try {
             val response = PostsApi.retrofitService.getAll()
-            if(!response.isSuccessful) {
+            if (!response.isSuccessful) {
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
+
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            dao.insert(body.toEntity()) // А вот здесь в Локальную БД вставляем из сети все посты
             responseErrMess = Pair(response.code(), response.message())
-            val body = response.body()?: throw ApiError(response.code(), response.message())
-            dao.insert(body.toEntity()) // А вот здесь с помощью ROOM берем из БД таблицы
-        }catch (e: IOException){throw NetworkError}
-        catch (e: Exception){throw UnknownError}
+
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
     }
 
-    override suspend fun save(post: Post){
+    override suspend fun save(post: Post) {
         try {
             val response = PostsApi.retrofitService.save(post)
-            if(!response.isSuccessful) {
+            if (!response.isSuccessful) {
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
-            responseErrMess = Pair(response.code(), response.message())
-            val body = response.body()?: throw ApiError(response.code(), response.message())
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
+            responseErrMess = Pair(response.code(), response.message())
 
-        }catch (e: IOException){throw NetworkError}
-        catch (e: Exception){throw UnknownError}
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
     }
 
     //    На retrofit
 
     override suspend fun likeById(id: Long, likedByMe: Boolean) {
-        TODO()
+        try {
+            val response = PostsApi.retrofitService.let{if(likedByMe)it.dislikeById(id) else it.likeById(id)}
+            if (!response.isSuccessful) {
+                responseErrMess = Pair(response.code(), response.message())
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            dao.insert(PostEntity.fromDto(body))
+            responseErrMess = Pair(response.code(), response.message())
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
 //
 //        val request: Request = Request.Builder()
 //            .url("${BASE_URL}/api/slow/posts/$id/likes")
@@ -93,7 +113,18 @@ class PostRepositoryImpl (private val dao: PostDao) : PostRepository {
 
 
     override suspend fun removeById(id: Long) {
-        TODO()
+        try {
+            val response = PostsApi.retrofitService.removeById(id)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            dao.removeById(id)
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
 //        val request: Request = Request.Builder()
 //            .delete()
 //            .url("${BASE_URL}/api/slow/posts/$id")
@@ -118,8 +149,6 @@ class PostRepositoryImpl (private val dao: PostDao) : PostRepository {
 //    }
 
 }
-
-
 
 
 ////Версия без корутин и рум

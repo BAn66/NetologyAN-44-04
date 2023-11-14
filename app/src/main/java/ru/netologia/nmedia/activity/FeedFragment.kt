@@ -48,8 +48,8 @@ class FeedFragment : Fragment() {
                 )
                     .setAction(R.string.retry_loading) { viewModel.loadPosts() }
                     .show()
-                viewModel.errorMessage = Pair(0, "")
             }
+//            viewModel.errorMessage = Pair(0, "")
         }
 
         val adapter = PostsAdapter(object : OnIteractionLister {
@@ -130,9 +130,8 @@ class FeedFragment : Fragment() {
             viewModel.refreshPosts()
         }
 
-
         binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
+            viewModel.refreshPosts()
         }
 
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)

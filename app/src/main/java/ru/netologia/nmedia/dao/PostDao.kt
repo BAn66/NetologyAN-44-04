@@ -25,26 +25,26 @@ interface PostDao {
     suspend fun insert(posts: List<PostEntity>)
 
     @Query("DELETE FROM PostEntity WHERE id = :id")
-    fun removeById(id: Long)
+    suspend fun removeById(id: Long)
 
-    @Query("UPDATE PostEntity SET content = :text WHERE id = :id")
-    suspend fun changeContentById(id: Long, text: String)
-
-    suspend fun save(post: PostEntity) =
-        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content)
-
-    @Query(
-        """
-                UPDATE PostEntity SET
-                    likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
-                    LikedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END
-                WHERE id = :id;
-            """
-    )
-    fun likeById(id: Long)
-
-    @Query("SELECT * FROM PostEntity WHERE id = :id")
-    fun getPostById(id: Long): PostEntity
+//    @Query("UPDATE PostEntity SET content = :text WHERE id = :id")
+//    suspend fun changeContentById(id: Long, text: String)
+//
+//    suspend fun save(post: PostEntity) =
+//        if (post.id == 0L) insert(post) else changeContentById(post.id, post.content)
+//
+//    @Query(
+//        """
+//                UPDATE PostEntity SET
+//                    likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
+//                    LikedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END
+//                WHERE id = :id;
+//            """
+//    )
+//    fun likeById(id: Long)
+//
+//    @Query("SELECT * FROM PostEntity WHERE id = :id")
+//    fun getPostById(id: Long): PostEntity
 
 
 //    @Query(

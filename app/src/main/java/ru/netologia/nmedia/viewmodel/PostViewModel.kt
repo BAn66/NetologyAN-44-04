@@ -36,14 +36,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
 
-    val data: LiveData<FeedModel> = repository.data.map(::FeedModel)
-    private val _dataState = MutableLiveData(FeedModelState())
+    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели
+    private val _dataState = MutableLiveData(FeedModelState()) //Состояние
     val dataState: LiveData<FeedModelState>
         get() = _dataState
-
-    private val _postCreated = SingleLiveEvent<Unit>()
-    val postCreated: LiveData<Unit> = _postCreated
     val edited = MutableLiveData(empty)
+    private val _postCreated = SingleLiveEvent<Unit>()
+    val postCreated: LiveData<Unit>
+        get() = _postCreated
+
+
 
     var errorMessage: Pair<Int, String> = Pair(0, "")
 
@@ -68,36 +70,37 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
+            errorMessage = repository.getErrMess()
             _dataState.value = FeedModelState(error = true)
         }
     }
 
 
     fun changeContentAndSave(content: String) {
+        val text: String = content.trim()
         //функция изменения и сохранения в репозитории
-        edited.value?.let { editedPost ->
+        edited.value?.let {
             _postCreated.value = Unit
             viewModelScope.launch {
                 try {
-                    val text: String = content.trim()
-                    if (editedPost.content == text) {
-                        return@launch
-                    }
-                    repository.save(
-                        editedPost.copy(
-                            content = text,
-                            author = "me",
-                            published = System.currentTimeMillis()
+                    if (it.content != text) {
+                        repository.save(
+                            it.copy(
+                                content = text,
+                                author = "me",
+                                published = System.currentTimeMillis()
+                            )
                         )
-                    )
+                    }
                     _dataState.value = FeedModelState()
                 } catch (e: Exception) {
                     errorMessage = repository.getErrMess()
                     _dataState.value = FeedModelState(error = true)
                 }
-                edited.value = empty
+
             }
         }
+        edited.value = empty
     }
 
     fun edit(post: Post) {
@@ -112,7 +115,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     //    fun shareById(id: Long) = repository.shareById(id)
 
     fun likeById(id: Long, likedByMe: Boolean) {
-        TODO()
+        viewModelScope.launch {
+            try {
+                repository.likeById(id, likedByMe)
+                _dataState.value = FeedModelState()
+            } catch (e: Exception) {
+                errorMessage = repository.getErrMess()
+                _dataState.value = FeedModelState(error = true)
+            }
+        }
 
 //                repository.likeByIdAsync(id, likedByMe, object : PostRepository.SaveCallback {
 //                    override fun onSuccess(result: Unit) {
@@ -144,7 +155,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun removeById(id: Long) {
-        TODO()
+        viewModelScope.launch {
+            try {
+                repository.removeById(id)
+                _dataState.value = FeedModelState()
+            } catch (e: Exception) {
+                errorMessage = repository.getErrMess()
+                _dataState.value = FeedModelState(error = true)
+            }
+        }
+
 //        repository.removeByIdAsync(id, object : PostRepository.SaveCallback {
 //            override fun onSuccess(result: Unit) {
 //                loadPosts()
