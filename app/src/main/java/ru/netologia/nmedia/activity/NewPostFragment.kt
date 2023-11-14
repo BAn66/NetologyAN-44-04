@@ -105,7 +105,7 @@ class NewPostFragment : Fragment(){
 
 //            возвращаемся на предыдущий фрагмент
             viewModel.postCreated.observe(viewLifecycleOwner){ //Работа с SingleLiveEvent: Остаемся на экране редактирования пока не придет ответ с сервера
-                viewModel.load() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+                viewModel.loadPosts() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
                 findNavController().popBackStack(R.id.feedFragment, false)
             }
 

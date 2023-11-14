@@ -1,27 +1,27 @@
 package ru.netologia.nmedia.repository
 
 
-import android.content.Context
-import android.net.http.NetworkException
-import android.widget.Toast
-import androidx.lifecycle.LiveData
+//import android.content.Context
+//import android.net.http.NetworkException
+//import android.widget.Toast
+//import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+//import com.google.gson.Gson
+//import com.google.gson.reflect.TypeToken
 //import okhttp3.Call
 //import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+//import okhttp3.MediaType.Companion.toMediaType
+//import okhttp3.OkHttpClient
+//import okhttp3.Request
+//import okhttp3.RequestBody.Companion.toRequestBody
 //import okhttp3.Response
 import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.dto.Post
 import java.io.IOException
-import java.util.concurrent.TimeUnit
-import retrofit2.Callback
-import retrofit2.Call
-import retrofit2.Response
+//import java.util.concurrent.TimeUnit
+//import retrofit2.Callback
+//import retrofit2.Call
+//import retrofit2.Response
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.toDto
@@ -48,7 +48,7 @@ class PostRepositoryImpl (private val dao: PostDao) : PostRepository {
             }
             responseErrMess = Pair(response.code(), response.message())
             val body = response.body()?: throw ApiError(response.code(), response.message())
-            dao.insert(body.toEntity())
+            dao.insert(body.toEntity()) // А вот здесь с помощью ROOM берем из БД таблицы
         }catch (e: IOException){throw NetworkError}
         catch (e: Exception){throw UnknownError}
     }
@@ -70,36 +70,38 @@ class PostRepositoryImpl (private val dao: PostDao) : PostRepository {
 
     //    На retrofit
 
-    override fun likeById(id: Long, likedByMe: Boolean) {
-
-        val request: Request = Request.Builder()
-            .url("${BASE_URL}/api/slow/posts/$id/likes")
-            .run {
-                if (likedByMe) {
-                    delete(gson.toJson(id).toRequestBody(jsonType))
-                } else {
-                    post(gson.toJson(id).toRequestBody(jsonType))
-                }
-            }
-            .build()
-
-
-        val responseString = client.newCall(request)
-            .execute()
-            .body?.string() ?: error("Body is null")
-        return gson.fromJson(responseString, Post::class.java) //из строки объект поста
+    override suspend fun likeById(id: Long, likedByMe: Boolean) {
+        TODO()
+//
+//        val request: Request = Request.Builder()
+//            .url("${BASE_URL}/api/slow/posts/$id/likes")
+//            .run {
+//                if (likedByMe) {
+//                    delete(gson.toJson(id).toRequestBody(jsonType))
+//                } else {
+//                    post(gson.toJson(id).toRequestBody(jsonType))
+//                }
+//            }
+//            .build()
+//
+//
+//        val responseString = client.newCall(request)
+//            .execute()
+//            .body?.string() ?: error("Body is null")
+//        return gson.fromJson(responseString, Post::class.java) //из строки объект поста
     }
 
 
-    override fun removeById(id: Long) {
-        val request: Request = Request.Builder()
-            .delete()
-            .url("${BASE_URL}/api/slow/posts/$id")
-            .build()
-
-        client.newCall(request)
-            .execute()
-            .close()
+    override suspend fun removeById(id: Long) {
+        TODO()
+//        val request: Request = Request.Builder()
+//            .delete()
+//            .url("${BASE_URL}/api/slow/posts/$id")
+//            .build()
+//
+//        client.newCall(request)
+//            .execute()
+//            .close()
     }
 
 
@@ -114,7 +116,9 @@ class PostRepositoryImpl (private val dao: PostDao) : PostRepository {
 //        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
 //        return gson.fromJson(responseString, Post::class.java)
 //    }
+
 }
+
 
 
 
@@ -404,4 +408,3 @@ class PostRepositoryImpl (private val dao: PostDao) : PostRepository {
 ////        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
 ////        return gson.fromJson(responseString, Post::class.java)
 ////    }
-}

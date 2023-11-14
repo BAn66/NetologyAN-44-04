@@ -24,5 +24,7 @@
     <string name="retry">ПОВТОРИТЬ</string>
     <string name="load">LOAD</string>
     <string name="description_logo">LOGO</string>
+    <string name="error_loading">Ошибка загрузки</string>
+    <string name="retry_loading">ПОВТОРИТЬ</string>
 
 </resources>

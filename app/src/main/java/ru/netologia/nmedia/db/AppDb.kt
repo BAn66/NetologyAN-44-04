@@ -3,8 +3,8 @@ package ru.netologia.nmedia.db
 //Для ROOM
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+//import android.database.sqlite.SQLiteDatabase
+//import android.database.sqlite.SQLiteOpenHelper
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -14,7 +14,7 @@ import ru.netologia.nmedia.entity.PostEntity
 
 @Database(entities = [PostEntity::class], version = 1, exportSchema = false)
 abstract class AppDb : RoomDatabase() {
-    abstract val postDao: PostDao
+    abstract fun postDao(): PostDao
 
     companion object {
         @Volatile

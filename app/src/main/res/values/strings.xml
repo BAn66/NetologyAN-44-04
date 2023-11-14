@@ -23,4 +23,6 @@
     <string name="retry">RETRY</string>
     <string name="load">LOAD</string>
     <string name="description_logo">LOGO</string>
+    <string name="error_loading">Error loading</string>
+    <string name="retry_loading">RETRY</string>
 </resources>
