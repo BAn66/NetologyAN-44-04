@@ -48,7 +48,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(body.toEntity()) // А вот здесь в Локальную БД вставляем из сети все посты
-            responseErrMess = Pair(response.code(), response.message())
+//            responseErrMess = Pair(response.code(), response.message())
 
         } catch (e: IOException) {
             throw NetworkError
@@ -59,15 +59,23 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun save(post: Post) {
         try {
+//            val response = PostsApi.retrofitService.save(post)
+//            if (!response.isSuccessful) {
+//                responseErrMess = Pair(response.code(), response.message())
+//                throw ApiError(response.code(), response.message())
+//            }
+//            val body = response.body() ?: throw ApiError(response.code(), response.message())
+//            dao.insert(PostEntity.fromDto(body))
+//            responseErrMess = Pair(response.code(), response.message())
+
+            dao.insert(PostEntity.fromDto(post))
             val response = PostsApi.retrofitService.save(post)
             if (!response.isSuccessful) {
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body))
-            responseErrMess = Pair(response.code(), response.message())
-
+//            responseErrMess = Pair(response.code(), response.message())
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -79,14 +87,17 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun likeById(id: Long, likedByMe: Boolean) {
         try {
-            val response = PostsApi.retrofitService.let{if(likedByMe)it.dislikeById(id) else it.likeById(id)}
+//            val post = dao.getPostById(id).toDto().copy(likedByMe =likedByMe)
+//            dao.insert(PostEntity.fromDto(post))
+            val response =
+                PostsApi.retrofitService.let { if (likedByMe) it.dislikeById(id) else it.likeById(id) }
             if (!response.isSuccessful) {
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
-            responseErrMess = Pair(response.code(), response.message())
+//            responseErrMess = Pair(response.code(), response.message())
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {

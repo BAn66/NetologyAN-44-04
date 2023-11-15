@@ -18,6 +18,7 @@ data class PostEntity(
     val published: Long,
     val likedByMe: Boolean,
     val likes: Int = 0,
+    val savedOnServer: Boolean = false,
 //    val attachment: Attachment? = null
 //    val shares: Long = 0L,
 //    val views: Long = 0L,
@@ -39,4 +40,7 @@ data class PostEntity(
 fun List<PostEntity>.toDto(): List<Post> = map(PostEntity:: toDto)
 
 fun List<Post>.toEntity(): List<PostEntity> = map(PostEntity :: fromDto)
+
+
+
 

@@ -43,8 +43,8 @@ interface PostDao {
 //    )
 //    fun likeById(id: Long)
 //
-//    @Query("SELECT * FROM PostEntity WHERE id = :id")
-//    fun getPostById(id: Long): PostEntity
+    @Query("SELECT * FROM PostEntity WHERE id = :id")
+    fun getPostById(id: Long): PostEntity
 
 
 //    @Query(
