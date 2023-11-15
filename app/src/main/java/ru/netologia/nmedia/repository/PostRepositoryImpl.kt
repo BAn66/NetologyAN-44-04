@@ -1,27 +1,9 @@
 package ru.netologia.nmedia.repository
 
-
-//import android.content.Context
-//import android.net.http.NetworkException
-//import android.widget.Toast
-//import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
-//import com.google.gson.Gson
-//import com.google.gson.reflect.TypeToken
-//import okhttp3.Call
-//import okhttp3.Callback
-//import okhttp3.MediaType.Companion.toMediaType
-//import okhttp3.OkHttpClient
-//import okhttp3.Request
-//import okhttp3.RequestBody.Companion.toRequestBody
-//import okhttp3.Response
 import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.dto.Post
 import java.io.IOException
-//import java.util.concurrent.TimeUnit
-//import retrofit2.Callback
-//import retrofit2.Call
-//import retrofit2.Response
+import androidx.lifecycle.map
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.toDto
@@ -48,47 +30,56 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(body.toEntity()) // А вот здесь в Локальную БД вставляем из сети все посты
-//            responseErrMess = Pair(response.code(), response.message())
-
         } catch (e: IOException) {
+            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
+
         } catch (e: Exception) {
+            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
     }
 
     override suspend fun save(post: Post) {
         try {
-//            val response = PostsApi.retrofitService.save(post)
-//            if (!response.isSuccessful) {
-//                responseErrMess = Pair(response.code(), response.message())
-//                throw ApiError(response.code(), response.message())
-//            }
-//            val body = response.body() ?: throw ApiError(response.code(), response.message())
-//            dao.insert(PostEntity.fromDto(body))
-//            responseErrMess = Pair(response.code(), response.message())
 
-            dao.insert(PostEntity.fromDto(post))
             val response = PostsApi.retrofitService.save(post)
             if (!response.isSuccessful) {
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-//            responseErrMess = Pair(response.code(), response.message())
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: IOException) {
+            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
+
         } catch (e: Exception) {
+            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
-    }
 
-    //    На retrofit
+    }
 
     override suspend fun likeById(id: Long, likedByMe: Boolean) {
         try {
-//            val post = dao.getPostById(id).toDto().copy(likedByMe =likedByMe)
+//            //Не рабочий вариант
+//            //1. Делаем копию поста из БД, меняем в ней лайк на тру/фолс из парметров метода и снова записываем его в базу
+//            // где по идее он должен перезаписаться НО НЕ ПЕРЕЗАПИСЫВАЕТСЯ (почему?)
+//            val post = dao.getPostById(id).toDto().copy(likedByMe = likedByMe)
 //            dao.insert(PostEntity.fromDto(post))
+//            //2. Далее меням лайк на сервере через ретрофит
+//            val response =
+//                PostsApi.retrofitService.let { if (likedByMe) it.dislikeById(id) else it.likeById(id) }
+//            if (!response.isSuccessful) {
+//                responseErrMess = Pair(response.code(), response.message())
+//                throw ApiError(response.code(), response.message())
+//            }
+//            val body = response.body() ?: throw ApiError(response.code(), response.message())
+//
+//            //ВОПРОС! почему в локальной БД ничего не изменяется, судя по инспектору
+
+            //Рабочий вариант
             val response =
                 PostsApi.retrofitService.let { if (likedByMe) it.dislikeById(id) else it.likeById(id) }
             if (!response.isSuccessful) {
@@ -97,68 +88,36 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
-//            responseErrMess = Pair(response.code(), response.message())
+
         } catch (e: IOException) {
+            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
+
         } catch (e: Exception) {
+            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
-//
-//        val request: Request = Request.Builder()
-//            .url("${BASE_URL}/api/slow/posts/$id/likes")
-//            .run {
-//                if (likedByMe) {
-//                    delete(gson.toJson(id).toRequestBody(jsonType))
-//                } else {
-//                    post(gson.toJson(id).toRequestBody(jsonType))
-//                }
-//            }
-//            .build()
-//
-//
-//        val responseString = client.newCall(request)
-//            .execute()
-//            .body?.string() ?: error("Body is null")
-//        return gson.fromJson(responseString, Post::class.java) //из строки объект поста
     }
 
 
     override suspend fun removeById(id: Long) {
         try {
+            dao.removeById(id)
             val response = PostsApi.retrofitService.removeById(id)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
-            val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.removeById(id)
+            response.body() ?: throw ApiError(response.code(), response.message())
         } catch (e: IOException) {
+            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
+
         } catch (e: Exception) {
+            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
-//        val request: Request = Request.Builder()
-//            .delete()
-//            .url("${BASE_URL}/api/slow/posts/$id")
-//            .build()
-//
-//        client.newCall(request)
-//            .execute()
-//            .close()
+
     }
-
-
-//    override fun getPostById(id: Long): Post {
-//        val request = Request.Builder()
-//            .get()//запрос
-//            .url("${BASE_URL}/api/slow/posts/$id")
-//            .build()
-//
-//        val call = client.newCall(request) //сетевой вызов
-//        val response = call.execute() //получаем ответ
-//        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
-//        return gson.fromJson(responseString, Post::class.java)
-//    }
-
 }
 
 
@@ -448,3 +407,15 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 ////        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
 ////        return gson.fromJson(responseString, Post::class.java)
 ////    }
+
+//    override fun getPostById(id: Long): Post {
+//        val request = Request.Builder()
+//            .get()//запрос
+//            .url("${BASE_URL}/api/slow/posts/$id")
+//            .build()
+//
+//        val call = client.newCall(request) //сетевой вызов
+//        val response = call.execute() //получаем ответ
+//        val responseString = response.body?.string() ?: error("Body is null") //строка из ответа
+//        return gson.fromJson(responseString, Post::class.java)
+//    }
