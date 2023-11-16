@@ -22,14 +22,26 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun getAll() {
         try {
+            saveOnServerCheck() //проверка текущий локальной БД на незаписанные посты на сервер, если такие есть то они пытаются отправится на сервер через save()
             val response = PostsApi.retrofitService.getAll()
             if (!response.isSuccessful) {
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
+            val bodyRsponse = response.body() ?: throw ApiError(response.code(), response.message())
+            val entityList = bodyRsponse.toEntity() //Превращаем ответ в лист с энтити
+            //А тут всем постам пришедшим с сервера ставим отметку тру
+            for (postEntity: PostEntity in entityList)
+            {
+                if (!postEntity.savedOnServer) {
+                    dao.saveOnServerSwitch(postEntity.id)
+                }
+            }
+            dao.insert(entityList) // А вот здесь в Локальную БД вставляем из сети все посты
 
-            val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(body.toEntity()) // А вот здесь в Локальную БД вставляем из сети все посты
+
+
+
         } catch (e: IOException) {
             responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
@@ -43,22 +55,50 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun save(post: Post) {
         try {
 
+            //Рабочий вариант с записью сначала на сервер
+//            val response = PostsApi.retrofitService.save(post)
+//            if (!response.isSuccessful) {
+//                responseErrMess = Pair(response.code(), response.message())
+//                throw ApiError(response.code(), response.message())
+//            }
+//            val body = response.body() ?: throw ApiError(response.code(), response.message())
+//            dao.insert(PostEntity.fromDto(body))
+
+            //Запись сначала в БД. Может сделать метод проверки загрузки постов из массива?
+            val postEntentety = PostEntity.fromDto(post)
+            dao.insert(postEntentety) //при сохранении поста, в базу вносится интентети с отметкой что оно не сохарнено на сервере
             val response = PostsApi.retrofitService.save(post)
-            if (!response.isSuccessful) {
+            if (!response.isSuccessful) { //если отвтет с сервера не пришел, то отметка о не записи на сервер по прежнему фолс
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body))
+            dao.saveOnServerSwitch(body.id)// исключение не брошено меняем отметку о записи на сервере на тру
+
         } catch (e: IOException) {
             responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
-
         } catch (e: Exception) {
             responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
 
+    }
+
+    suspend fun saveOnServerCheck() {
+        try {
+            for (postEntentety: PostEntity in dao.getAll().value!!) {
+                if (!postEntentety.savedOnServer) {
+                    save(postEntentety.toDto())
+                }
+            }
+        } catch (e: IOException) {
+            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
+            throw NetworkError
+        } catch (e: Exception) {
+            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
+            throw UnknownError
+        }
     }
 
     override suspend fun likeById(id: Long, likedByMe: Boolean) {

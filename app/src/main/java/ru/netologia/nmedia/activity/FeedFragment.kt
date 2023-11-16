@@ -29,6 +29,20 @@ import ru.netologia.nmedia.viewmodel.PostsAdapter
 class FeedFragment : Fragment() {
     private val viewModel: PostViewModel by activityViewModels()
 
+    fun toastErrMess(state: FeedModelState) {
+        if (state.error) {
+            Snackbar.make(
+                FragmentFeedBinding.inflate(layoutInflater).root,
+                "Ошибка в основном : ${viewModel.errorMessage.first} - ${viewModel.errorMessage.second}",
+//                    R.string.error_loading,
+                Snackbar.LENGTH_LONG
+            )
+                .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                .show()
+        }
+//            viewModel.errorMessage = Pair(0, "")
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -36,21 +50,6 @@ class FeedFragment : Fragment() {
     ): View {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
-
-
-        fun toastErrMess(state: FeedModelState) {
-            if (state.error) {
-                Snackbar.make(
-                    binding.root,
-                    "Ошибка : ${viewModel.errorMessage.first} - ${viewModel.errorMessage.second}",
-//                    R.string.error_loading,
-                    Snackbar.LENGTH_LONG
-                )
-                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
-                    .show()
-            }
-//            viewModel.errorMessage = Pair(0, "")
-        }
 
         val adapter = PostsAdapter(object : OnIteractionLister {
 
