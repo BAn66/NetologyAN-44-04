@@ -63,32 +63,14 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun likeById(id: Long, likedByMe: Boolean) {
         try {
-//            //Не рабочий вариант
-//            //1. Делаем копию поста из БД, меняем в ней лайк на тру/фолс из парметров метода и снова записываем его в базу
-//            // где по идее он должен перезаписаться НО НЕ ПЕРЕЗАПИСЫВАЕТСЯ (почему?)
-//            val post = dao.getPostById(id).toDto().copy(likedByMe = likedByMe)
-//            dao.insert(PostEntity.fromDto(post))
-//            //2. Далее меням лайк на сервере через ретрофит
-//            val response =
-//                PostsApi.retrofitService.let { if (likedByMe) it.dislikeById(id) else it.likeById(id) }
-//            if (!response.isSuccessful) {
-//                responseErrMess = Pair(response.code(), response.message())
-//                throw ApiError(response.code(), response.message())
-//            }
-//            val body = response.body() ?: throw ApiError(response.code(), response.message())
-//
-//            //ВОПРОС! почему в локальной БД ничего не изменяется, судя по инспектору
-
-            //Рабочий вариант
+            dao.likeById(id)
             val response =
                 PostsApi.retrofitService.let { if (likedByMe) it.dislikeById(id) else it.likeById(id) }
             if (!response.isSuccessful) {
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
             }
-            val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body))
-
+            response.body() ?: throw ApiError(response.code(), response.message())
         } catch (e: IOException) {
             responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
