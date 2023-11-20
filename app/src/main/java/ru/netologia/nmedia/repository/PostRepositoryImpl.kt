@@ -11,6 +11,7 @@ import ru.netologia.nmedia.entity.toEntity
 import ru.netologia.nmedia.error.*
 
 
+
 class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override val data = dao.getAll().map(List<PostEntity>::toDto) //Берем текущую локальную БД
 
@@ -30,6 +31,8 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
             val bodyRsponse = response.body() ?: throw ApiError(response.code(), response.message())
             val entityList = bodyRsponse.toEntity() //Превращаем ответ в лист с энтити
+
+            dao.insert(entityList)// А вот здесь в Локальную БД вставляем из сети все посты
             //А тут всем постам пришедшим с сервера ставим отметку тру
             for (postEntity: PostEntity in entityList)
             {
@@ -37,10 +40,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                     dao.saveOnServerSwitch(postEntity.id)
                 }
             }
-            dao.insert(entityList) // А вот здесь в Локальную БД вставляем из сети все посты
-
-
-
 
         } catch (e: IOException) {
             responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
@@ -64,10 +63,10 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 //            val body = response.body() ?: throw ApiError(response.code(), response.message())
 //            dao.insert(PostEntity.fromDto(body))
 
-            //Запись сначала в БД. Может сделать метод проверки загрузки постов из массива?
+            //Запись сначала в БД.
             val postEntentety = PostEntity.fromDto(post)
             dao.insert(postEntentety) //при сохранении поста, в базу вносится интентети с отметкой что оно не сохарнено на сервере
-            val response = PostsApi.retrofitService.save(post)
+            val response = PostsApi.retrofitService.save(post.copy(id = 0)) //Если у поста айди 0 то сервер воспринимает его как новый
             if (!response.isSuccessful) { //если отвтет с сервера не пришел, то отметка о не записи на сервер по прежнему фолс
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())
@@ -82,12 +81,12 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
-
+        getAll()
     }
 
     suspend fun saveOnServerCheck() {
         try {
-            for (postEntentety: PostEntity in dao.getAll().value!!) {
+            for (postEntentety: PostEntity in dao.getAll().value?: emptyList()) {
                 if (!postEntentety.savedOnServer) {
                     save(postEntentety.toDto())
                 }
