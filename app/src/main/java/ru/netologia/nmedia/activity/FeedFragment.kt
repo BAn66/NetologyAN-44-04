@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+//import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -14,19 +14,34 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView.SmoothScroller
-import okhttp3.internal.wait
+import com.google.android.material.snackbar.Snackbar
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
 import ru.netologia.nmedia.dto.Post
+//import ru.netologia.nmedia.model.FeedModel
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
-import java.lang.Thread.sleep
 
 
 /** Работа через фрагменты*/
 class FeedFragment : Fragment() {
+    private val viewModel: PostViewModel by activityViewModels()
+
+    fun toastErrMess(state: FeedModelState) {
+        if (state.error) {
+            Snackbar.make(
+                FragmentFeedBinding.inflate(layoutInflater).root,
+                "Ошибка в основном : ${viewModel.errorMessage.first} - ${viewModel.errorMessage.second}",
+//                    R.string.error_loading,
+                Snackbar.LENGTH_LONG
+            )
+                .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                .show()
+        }
+//            viewModel.errorMessage = Pair(0, "")
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,21 +51,7 @@ class FeedFragment : Fragment() {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
 
-        val viewModel: PostViewModel by activityViewModels()
-
-        fun toastErrMess(feedModelState: FeedModelState){
-            if (feedModelState.error) {
-                Toast.makeText(
-                    context,
-                    "Что то пошло не так! Ошибка запроса:${viewModel.errorMessage.first} - ${viewModel.errorMessage.second} ",
-                    Toast.LENGTH_SHORT
-                ).show()
-                viewModel.errorMessage = Pair(0, "")
-                viewModel.load()
-            }
-        }
         val adapter = PostsAdapter(object : OnIteractionLister {
-
 
 
             override fun like(post: Post) {
@@ -72,12 +73,12 @@ class FeedFragment : Fragment() {
 
             override fun remove(post: Post) {
                 viewModel.removeById(post.id)
-                viewModel.load() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+                viewModel.loadPosts() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
             }
 
             override fun edit(post: Post) {
                 viewModel.edit(post)
-                viewModel.load()
+                viewModel.loadPosts()
             }
 
 //            override fun playVideo(post: Post) {
@@ -94,18 +95,23 @@ class FeedFragment : Fragment() {
             }
         })
 
-
-
         binding.list.adapter = adapter
-        // Работаем с скролвью
-        viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
-            toastErrMess(feedModelState) //Вывод тоста при ошибке передачи данных с сервера
-            val newPost =
-                feedModelState.posts.size > adapter.currentList.size //флаг если добавился новый пост
 
+        viewModel.dataState.observe(viewLifecycleOwner) { state ->
+            binding.progress.isVisible = state.loading
+            binding.swiperefresh.isRefreshing = state.refreshing
+            toastErrMess(state)
+        }
+
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            //         Работаем с скролвью
+            val newPost =
+                state.posts.size > adapter.currentList.size //флаг если добавился новый пост
             // Адаптер для списка постов ROOM
-            adapter.submitList(feedModelState.posts) {
-                if (newPost) {//прокрутка до начала при добавлении поста/ иначе будет мотать наверх при любом изменении в ScrollView
+            adapter.submitList(state.posts)
+            {
+                if (newPost) {
+                    //прокрутка до начала при добавлении поста/ иначе будет мотать наверх при любом изменении в ScrollView
                     val smoothScroller: SmoothScroller = object : LinearSmoothScroller(context) {
                         override fun getVerticalSnapPreference(): Int {
                             return SNAP_TO_START
@@ -116,23 +122,15 @@ class FeedFragment : Fragment() {
                     //прокрутка до начала при добавлении поста и при новом запуске
                 }
             }
-
-            //Временный адаптер
-//            adapter.submitList(feedModelState.posts)
-
-            binding.progress.isVisible = feedModelState.loading
-//            binding.errorGroup.isVisible = feedModelState.error
-            binding.empty.isVisible = feedModelState.empty
-
-            binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу
-                viewModel.load()
-                binding.swiperefresh.isRefreshing = feedModelState.loading
-            }
+            binding.empty.isVisible = state.empty
         }
 
+        binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу
+            viewModel.refreshPosts()
+        }
 
         binding.retryButton.setOnClickListener {
-            viewModel.load()
+            viewModel.refreshPosts()
         }
 
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)

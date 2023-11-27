@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -23,9 +22,26 @@ import ru.netologia.nmedia.viewmodel.PostViewModel
 /** Работа через фрагменты */
 class NewPostFragment : Fragment(){
 
+
     companion object{
         var Bundle.text by StringArg
     }
+
+    fun toastErrMess(viewModel: PostViewModel){
+        if (viewModel.dataState.value!!.error) {
+            Snackbar.make(
+                FragmentNewPostBinding.inflate(layoutInflater).root,
+                "Ошибка в добавлении : ${viewModel.errorMessage.first} - ${viewModel.errorMessage.second}",
+//                    R.string.error_loading,
+                Snackbar.LENGTH_LONG
+            )
+                .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                .show()
+//                viewModel.errorMessage = Pair(0, "")
+//                findNavController().popBackStack(R.id.feedFragment, false)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,28 +57,16 @@ class NewPostFragment : Fragment(){
             binding.editTextNewPost.setText(text)
         }
 
-        fun toastErrMess(){
-            if (viewModel.errorMessage.first !=0) {
-                Toast.makeText(
-                    context,
-                    "Что то пошло не так! Ошибка запроса:${viewModel.errorMessage.first} - ${viewModel.errorMessage.second} ",
-                    Toast.LENGTH_SHORT
-                ).show()
-                viewModel.errorMessage = Pair(0, "")
-                findNavController().popBackStack(R.id.feedFragment, false)
-            }
-        }
-
 //        Для загрузки черновика
         setFragmentResultListener("requestSavedTmpContent") { key, bundle ->
-            toastErrMess()
+            toastErrMess(viewModel)
             val savedTmpContent = bundle.getString("savedTmpContent")
             binding.editTextNewPost.setText(savedTmpContent)
         }
 
         //Для редактирования поста
         setFragmentResultListener("requestIdForNewPostFragment") { key, bundle ->
-            toastErrMess()
+            toastErrMess(viewModel)
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId = bundle.getLong("id")
             if (resultId != 0L) {
@@ -73,7 +77,7 @@ class NewPostFragment : Fragment(){
         }
 
         setFragmentResultListener("requestIdForNewPostFragmentFromPost") { key, bundle ->
-            toastErrMess()
+            toastErrMess(viewModel)
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId2 = bundle.getLong("id")
             if (resultId2 != 0L) {
@@ -92,7 +96,7 @@ class NewPostFragment : Fragment(){
             if (binding.editTextNewPost.text.isNotBlank()) {
                 val content = binding.editTextNewPost.text.toString()
                 viewModel.changeContentAndSave(content)
-                toastErrMess()
+                toastErrMess(viewModel)
             } else {
                 Snackbar.make(binding.root, R.string.error_empty_content,
                     BaseTransientBottomBar.LENGTH_INDEFINITE
@@ -104,7 +108,8 @@ class NewPostFragment : Fragment(){
 
 //            возвращаемся на предыдущий фрагмент
             viewModel.postCreated.observe(viewLifecycleOwner){ //Работа с SingleLiveEvent: Остаемся на экране редактирования пока не придет ответ с сервера
-                viewModel.load() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+                viewModel.loadPosts()// не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+                toastErrMess(viewModel)
                 findNavController().popBackStack(R.id.feedFragment, false)
             }
 
