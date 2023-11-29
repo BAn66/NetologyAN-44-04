@@ -134,12 +134,12 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     suspend fun saveOnServerCheck() {
         try {
-            for (postEntentety: PostEntity in dao.getAll()
+            for (postEntity: PostEntity in dao.getAll()
                 .asLiveData(Dispatchers.Default)
                 .value ?: emptyList()
             ) {
-                if (!postEntentety.savedOnServer) {
-                    save(postEntentety.toDto())
+                if (!postEntity.savedOnServer) {
+                    save(postEntity.toDto())
                 }
             }
         } catch (e: IOException) {

@@ -19,7 +19,10 @@ data class PostEntity(
     val likedByMe: Boolean,
     val likes: Int = 0,
     val savedOnServer: Boolean = false,
-//    var showed: Boolean = false
+
+//    val showed: Boolean = false,
+
+
 //    val attachment: Attachment? = null
 //    val shares: Long = 0L,
 //    val views: Long = 0L,
