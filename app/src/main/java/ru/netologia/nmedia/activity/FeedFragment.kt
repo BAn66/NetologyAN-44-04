@@ -106,7 +106,7 @@ class FeedFragment : Fragment() {
         viewModel.data.observe(viewLifecycleOwner) { state ->
             //         Работаем с скролвью
             val newPost =
-                state.posts.size > adapter.currentList.size //флаг если добавился новый пост
+                state.posts.size > adapter.currentList.size && adapter.itemCount > 0//флаг если добавился новый пост, и был хотябы один пост
             // Адаптер для списка постов ROOM
             adapter.submitList(state.posts)
             {
@@ -123,6 +123,11 @@ class FeedFragment : Fragment() {
                 }
             }
             binding.empty.isVisible = state.empty
+//            binding.showNew.isVisible = viewModel.haveNew
+        }
+
+        viewModel.newerCount.observe(viewLifecycleOwner) {
+            println("$it posts add")
         }
 
         binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу
@@ -145,6 +150,13 @@ class FeedFragment : Fragment() {
             }
         }
 
+        //TODO Добавить кнопку загрузки на сервер не сохраненных постов
+
+
+//        binding.showNew.setOnClickListener{
+//            binding.showNew.isVisible = false
+//            viewModel.refreshPosts()
+//        }
 
         binding.fab.setOnClickListener {
             setFragmentResultListener("requestTmpContent") { key, bundle ->

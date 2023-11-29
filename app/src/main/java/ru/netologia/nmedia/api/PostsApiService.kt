@@ -4,7 +4,7 @@ package ru.netologia.nmedia.api
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Call
+//import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -36,6 +36,9 @@ val retrofit = Retrofit.Builder()
 interface PostsApiService {
     @GET("posts")
     suspend fun getAll(): Response<List<Post>>
+
+    @GET("posts/{id}/newer")
+    suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
 
     @GET("posts/{id}")
     suspend fun getById(@Path("id") id: Long): Response<Post>

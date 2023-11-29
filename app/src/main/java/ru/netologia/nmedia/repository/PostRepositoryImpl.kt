@@ -1,9 +1,19 @@
 package ru.netologia.nmedia.repository
 
+import androidx.lifecycle.asLiveData
 import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.dto.Post
 import java.io.IOException
-import androidx.lifecycle.map
+//import androidx.lifecycle.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+
+import kotlinx.coroutines.flow.map
+//import okhttp3.Dispatcher
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.toDto
@@ -11,10 +21,11 @@ import ru.netologia.nmedia.entity.toEntity
 import ru.netologia.nmedia.error.*
 
 
-
 class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
-    override val data = dao.getAll().map(List<PostEntity>::toDto) //Берем текущую локальную БД
+    override val data = dao.getAll()
+        .map(List<PostEntity>::toDto) //Берем текущую локальную БД
 
+    //        .flowOn(Dispatchers.Default) //вызывются не на главном потоке//но мы это сделаем в поствьюмодел
     private var responseErrMess: Pair<Int, String> = Pair(0, "")
     override fun getErrMess(): Pair<Int, String> {
         return responseErrMess
@@ -34,8 +45,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
             dao.insert(entityList)// А вот здесь в Локальную БД вставляем из сети все посты
             //А тут всем постам пришедшим с сервера ставим отметку тру
-            for (postEntity: PostEntity in entityList)
-            {
+            for (postEntity: PostEntity in entityList) {
                 if (!postEntity.savedOnServer) {
                     dao.saveOnServerSwitch(postEntity.id)
                 }
@@ -50,6 +60,44 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             throw UnknownError
         }
     }
+
+    override fun getNewer(id: Long): Flow<Int> = flow {
+        while (true) {
+            delay(10_000L)
+            val response = PostsApi.retrofitService.getNewer(id)
+            if (!response.isSuccessful) {
+                responseErrMess = Pair(response.code(), response.message())
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            dao.insert(body.toEntity())
+            emit(body.size)
+        }
+    }
+        .catch { throw UnknownError } //Репозиторий может выбрасывать исключения, но их тогда нужно обрабатывать во вьюмодели, тоже в кэтче флоу
+//        .flowOn(Dispatchers.Default)
+
+//    override suspend fun showNewer(): Boolean {
+//        try {
+//            for (postEntentety: PostEntity in dao.getAll()
+//                .asLiveData(Dispatchers.Default)
+//                .value ?: emptyList()
+//
+//            ) {
+//                if (!postEntentety.showed) {
+//                    dao.showedSwitch(postEntentety.id)
+//                }
+//            }
+//        } catch (e: IOException) {
+//            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
+//            throw NetworkError
+//        } catch (e: Exception) {
+//            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
+//            throw UnknownError
+//        }
+//        return true
+//    }
+
 
     override suspend fun save(post: Post) {
         try {
@@ -86,7 +134,10 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     suspend fun saveOnServerCheck() {
         try {
-            for (postEntentety: PostEntity in dao.getAll().value?: emptyList()) {
+            for (postEntentety: PostEntity in dao.getAll()
+                .asLiveData(Dispatchers.Default)
+                .value ?: emptyList()
+            ) {
                 if (!postEntentety.savedOnServer) {
                     save(postEntentety.toDto())
                 }
