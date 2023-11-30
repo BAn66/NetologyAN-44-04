@@ -20,7 +20,7 @@ data class PostEntity(
     val likes: Int = 0,
     val savedOnServer: Boolean = false,
 
-//    val showed: Boolean = false,
+    val showed: Boolean = true,
 
 
 //    val attachment: Attachment? = null

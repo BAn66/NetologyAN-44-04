@@ -13,8 +13,8 @@ import ru.netologia.nmedia.entity.PostEntity
 
 @Dao
 interface PostDao {
-    @Query("SELECT * FROM PostEntity ORDER BY id DESC")
-//    @Query("SELECT * FROM PostEntity WHERE showed = 1 ORDER BY id DESC")
+//    @Query("SELECT * FROM PostEntity ORDER BY id DESC")
+    @Query("SELECT * FROM PostEntity WHERE showed = 1 ORDER BY id DESC")
 //    fun getAll(): LiveData<List<PostEntity>> //без flow
     fun getAll(): Flow<List<PostEntity>>
 
@@ -52,12 +52,18 @@ interface PostDao {
             """)
     suspend fun saveOnServerSwitch(id: Long)
 
-//    @Query("""
-//                UPDATE PostEntity SET
-//                    showed = 1
-//                WHERE id = :id;
-//            """)
-//    suspend fun showedSwitch(id: Long)
+    @Query("""
+                UPDATE PostEntity SET                    
+                    showed = 0
+                WHERE id = :id;
+            """)
+    suspend fun saveOnServerSwitchNew(id: Long)
+
+    @Query("""
+                UPDATE PostEntity SET
+                    showed = 1 ;
+            """)
+    suspend fun showedSwitch()
 
     @Query("SELECT * FROM PostEntity WHERE id = :id")
     suspend fun getPostById(id: Long): PostEntity

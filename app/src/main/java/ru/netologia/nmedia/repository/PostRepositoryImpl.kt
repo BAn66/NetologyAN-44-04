@@ -71,32 +71,17 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(body.toEntity())
+            dao.saveOnServerSwitchNew(id)
             emit(body.size)
         }
     }
         .catch { throw UnknownError } //Репозиторий может выбрасывать исключения, но их тогда нужно обрабатывать во вьюмодели, тоже в кэтче флоу
 //        .flowOn(Dispatchers.Default)
 
-//    override suspend fun showNewer(): Boolean {
-//        try {
-//            for (postEntentety: PostEntity in dao.getAll()
-//                .asLiveData(Dispatchers.Default)
-//                .value ?: emptyList()
-//
-//            ) {
-//                if (!postEntentety.showed) {
-//                    dao.showedSwitch(postEntentety.id)
-//                }
-//            }
-//        } catch (e: IOException) {
-//            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
-//            throw NetworkError
-//        } catch (e: Exception) {
-//            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
-//            throw UnknownError
-//        }
-//        return true
-//    }
+    override suspend fun haveNewer(): Boolean {
+        dao.showedSwitch()
+        return false
+    }
 
 
     override suspend fun save(post: Post) {
@@ -114,7 +99,8 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             //Запись сначала в БД.
             val postEntentety = PostEntity.fromDto(post)
             dao.insert(postEntentety) //при сохранении поста, в базу вносится интентети с отметкой что оно не сохарнено на сервере
-            val response = PostsApi.retrofitService.save(post.copy(id = 0)) //Если у поста айди 0 то сервер воспринимает его как новый
+            val response =
+                PostsApi.retrofitService.save(post.copy(id = 0)) //Если у поста айди 0 то сервер воспринимает его как новый
             if (!response.isSuccessful) { //если отвтет с сервера не пришел, то отметка о не записи на сервер по прежнему фолс
                 responseErrMess = Pair(response.code(), response.message())
                 throw ApiError(response.code(), response.message())

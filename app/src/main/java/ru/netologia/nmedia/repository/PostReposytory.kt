@@ -9,7 +9,7 @@ interface PostRepository {
 //    val data: LiveData<List<Post>> //без flow
     val data: Flow<List<Post>>
     fun getNewer(id: Long): Flow<Int>
-//    suspend fun showNewer(): Boolean
+    suspend fun haveNewer(): Boolean
     suspend fun getAll()
     suspend fun save(post: Post)
     suspend fun removeById(id: Long)

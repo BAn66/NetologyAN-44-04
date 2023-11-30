@@ -40,7 +40,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 // Работа с сетевыми запросами
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
-//    var haveNew: Boolean = false //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
+    var haveNew: Boolean = true //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
 
     //    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели //Без Flow
     val data: LiveData<FeedModel> = repository.data
@@ -53,6 +53,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val newerCount = data.switchMap {
         repository.getNewer(it.posts.firstOrNull()?.id ?: 0L)
             .asLiveData(Dispatchers.Default)
+
     }
 
 
@@ -85,8 +86,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(refreshing = true)
+            haveNew = repository.haveNewer()
             repository.getAll()
-//            haveNew = repository.showNewer()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             errorMessage = repository.getErrMess()

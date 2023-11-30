@@ -123,10 +123,11 @@ class FeedFragment : Fragment() {
                 }
             }
             binding.empty.isVisible = state.empty
-//            binding.showNew.isVisible = viewModel.haveNew
+
         }
 
         viewModel.newerCount.observe(viewLifecycleOwner) {
+            binding.showNew.isVisible = true
             println("$it posts add")
         }
 
@@ -153,10 +154,10 @@ class FeedFragment : Fragment() {
         //TODO Добавить кнопку загрузки на сервер не сохраненных постов
 
 
-//        binding.showNew.setOnClickListener{
-//            binding.showNew.isVisible = false
-//            viewModel.refreshPosts()
-//        }
+        binding.showNew.setOnClickListener{
+            binding.showNew.isVisible = viewModel.haveNew
+            viewModel.refreshPosts()
+        }
 
         binding.fab.setOnClickListener {
             setFragmentResultListener("requestTmpContent") { key, bundle ->
