@@ -57,7 +57,7 @@ interface PostDao {
                     showed = 0
                 WHERE id = :id;
             """)
-    suspend fun saveOnServerSwitchNew(id: Long)
+    suspend fun showedSwitchNew(id: Long)
 
     @Query("""
                 UPDATE PostEntity SET

@@ -71,7 +71,8 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(body.toEntity())
-            dao.saveOnServerSwitchNew(id)
+            dao.showedSwitchNew(id)
+            dao.insert(body.toEntity())
             emit(body.size)
         }
     }
