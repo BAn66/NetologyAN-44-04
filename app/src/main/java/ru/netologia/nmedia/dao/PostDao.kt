@@ -52,12 +52,12 @@ interface PostDao {
             """)
     suspend fun saveOnServerSwitch(id: Long)
 
-    @Query("""
-                UPDATE PostEntity SET                    
-                    showed = 0
-                WHERE id = :id;
-            """)
-    suspend fun showedSwitchNew(id: Long)
+//    @Query("""
+//                UPDATE PostEntity SET
+//                    showed = 0
+//                WHERE id = :id;
+//            """)
+//    suspend fun showedSwitchNew(id: Long) //Не пригодился
 
     @Query("""
                 UPDATE PostEntity SET

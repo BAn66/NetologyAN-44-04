@@ -157,6 +157,8 @@ class FeedFragment : Fragment() {
         binding.showNew.setOnClickListener{
             binding.showNew.isVisible = viewModel.haveNew
             viewModel.refreshPosts()
+            //todo сделать так чтобы еще и незагруженные посты пользователя отправлялись на сервер
+//            viewModel.showNewPosts() //Не советуют использовать в листенере этой кнопки рефреш, потому как там геталл есть который для этой кнопки избыточен
         }
 
         binding.fab.setOnClickListener {

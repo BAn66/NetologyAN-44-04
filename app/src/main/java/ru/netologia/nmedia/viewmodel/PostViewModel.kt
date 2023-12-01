@@ -95,6 +95,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun showNewPosts() = viewModelScope.launch {
+        try {
+            _dataState.value = FeedModelState(refreshing = true)
+            haveNew = repository.haveNewer()
+            _dataState.value = FeedModelState()
+        } catch (e: Exception) {
+            errorMessage = repository.getErrMess()
+            _dataState.value = FeedModelState(error = true)
+        }
+    }
+
 
     fun changeContentAndSave(content: String) {
         val text: String = content.trim()
