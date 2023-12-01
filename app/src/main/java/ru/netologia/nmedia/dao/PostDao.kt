@@ -2,18 +2,21 @@ package ru.netologia.nmedia.dao
 
 //Для ROOM
 
-import androidx.lifecycle.LiveData
+//import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.OnConflictStrategy
+import kotlinx.coroutines.flow.Flow
 //import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.entity.PostEntity
 
 @Dao
 interface PostDao {
-    @Query("SELECT * FROM PostEntity ORDER BY id DESC")
-    fun getAll(): LiveData<List<PostEntity>>
+//    @Query("SELECT * FROM PostEntity ORDER BY id DESC")
+    @Query("SELECT * FROM PostEntity WHERE showed = 1 ORDER BY id DESC")
+//    fun getAll(): LiveData<List<PostEntity>> //без flow
+    fun getAll(): Flow<List<PostEntity>>
 
     @Query("SELECT COUNT(*) == 0 FROM PostEntity")
     suspend fun isEmpty(): Boolean
@@ -48,6 +51,19 @@ interface PostDao {
                 WHERE id = :id;
             """)
     suspend fun saveOnServerSwitch(id: Long)
+
+//    @Query("""
+//                UPDATE PostEntity SET
+//                    showed = 0
+//                WHERE id = :id;
+//            """)
+//    suspend fun showedSwitchNew(id: Long) //Не пригодился
+
+    @Query("""
+                UPDATE PostEntity SET
+                    showed = 1 ;
+            """)
+    suspend fun showedSwitch()
 
     @Query("SELECT * FROM PostEntity WHERE id = :id")
     suspend fun getPostById(id: Long): PostEntity

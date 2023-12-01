@@ -4,8 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.asLiveData
+//import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.db.AppDb
 import ru.netologia.nmedia.dto.Post
@@ -32,11 +37,27 @@ private val empty = Post(
 
 //class PostViewModel(application: Application, myRepository: PostRepository) :
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    // Работа с сетевыми запросами
+// Работа с сетевыми запросами
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
+    var haveNew: Boolean = true //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
 
-    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели
+    //    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели //Без Flow
+    val data: LiveData<FeedModel> = repository.data
+        .map(::FeedModel)
+        .catch { errorMessage = repository.getErrMess()
+//                _dataState.value = FeedModelState(error = true)
+        }
+        .asLiveData(Dispatchers.Default) //запускаем не на главном потоке
+
+    val newerCount = data.switchMap {
+        repository.getNewer(it.posts.firstOrNull()?.id ?: 0L)
+            .asLiveData(Dispatchers.Default)
+
+    }
+
+
+
     private val _dataState = MutableLiveData(FeedModelState()) //Состояние
     val dataState: LiveData<FeedModelState>
         get() = _dataState
@@ -44,8 +65,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
-
-
 
     var errorMessage: Pair<Int, String> = Pair(0, "")
 
@@ -67,7 +86,19 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(refreshing = true)
+            haveNew = repository.haveNewer()
             repository.getAll()
+            _dataState.value = FeedModelState()
+        } catch (e: Exception) {
+            errorMessage = repository.getErrMess()
+            _dataState.value = FeedModelState(error = true)
+        }
+    }
+
+    fun showNewPosts() = viewModelScope.launch {
+        try {
+            _dataState.value = FeedModelState(refreshing = true)
+            haveNew = repository.haveNewer()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             errorMessage = repository.getErrMess()

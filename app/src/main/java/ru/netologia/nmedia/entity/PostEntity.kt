@@ -19,6 +19,9 @@ data class PostEntity(
     val likedByMe: Boolean,
     val likes: Int = 0,
     val savedOnServer: Boolean = false,
+    val showed: Boolean = true,
+
+
 //    val attachment: Attachment? = null
 //    val shares: Long = 0L,
 //    val views: Long = 0L,
@@ -30,7 +33,7 @@ data class PostEntity(
 
     companion object {
         fun fromDto(postDto: Post) : PostEntity =
-            PostEntity(postDto.id, postDto.author, postDto.authorAvatar, postDto.content, postDto.published, postDto.likedByMe, postDto.likes,
+            PostEntity(postDto.id, postDto.author, postDto.authorAvatar, postDto.content, postDto.published*1000, postDto.likedByMe, postDto.likes,
 //                post.shares, post.views, post.video
                         )
     }
