@@ -27,5 +27,6 @@
     <string name="error_loading">Ошибка загрузки</string>
     <string name="retry_loading">ПОВТОРИТЬ</string>
     <string name="description_showNew">Свежие записи</string>
+    <string name="save">Сохранить</string>
 
 </resources>
