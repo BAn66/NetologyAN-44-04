@@ -70,9 +70,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(body.toEntity())
-            dao.showedSwitchNew(id)
-            dao.insert(body.toEntity())
+            dao.insert(body.toEntity().map { it.copy(savedOnServer = true, showed = false) })//вставляем в базу, скопированный ответ с сервера с нужными нам маркерами, записан на сервере и не показывать.
             emit(body.size)
         }
     }
