@@ -43,8 +43,8 @@ class PostViewHolder(
 
             if (post.attachment?.type == AttachmentType.IMAGE) {
                 imageHolder.visibility = ImageView.VISIBLE
-                val urlImages = "http://10.0.2.2:9999/images/${post.attachment.url}"
-                imageHolder.contentDescription = post.attachment.description
+                val urlImages = "http://10.0.2.2:9999/media/${post.attachment.url}"
+                imageHolder.contentDescription = post.attachment.url
 
                 Glide.with(imageHolder)
                     .load(urlImages)
@@ -96,6 +96,7 @@ class PostViewHolder(
             avatar.setOnClickListener { onIteractionLister.openPost(post) }
             author.setOnClickListener { onIteractionLister.openPost(post) }
             published.setOnClickListener { onIteractionLister.openPost(post) }
+            imageHolder.setOnClickListener{onIteractionLister.openImage(post)}
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {

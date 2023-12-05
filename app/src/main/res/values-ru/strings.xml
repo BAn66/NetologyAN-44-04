@@ -28,5 +28,7 @@
     <string name="retry_loading">ПОВТОРИТЬ</string>
     <string name="description_showNew">Свежие записи</string>
     <string name="save">Сохранить</string>
+    <string name="remove">удалить</string>
+    <string name="description_image">изображение</string>
 
 </resources>

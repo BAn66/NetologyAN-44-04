@@ -61,6 +61,7 @@ dependencies {
     def retrofit_version = "2.9.0" //для  CRUD через ретрофит позволит в декларативном стиле работать с HTTP-запросами
     def retrofitgson_version = "2.9.0" //обмен между json и ретрофит
     def coroutines_version = "1.3.9"
+    def imagepicker_version = "2.1" //Для работы с картинками
 //    def arch_version = "2.1.0"
 
 
@@ -95,5 +96,6 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     kapt "androidx.room:room-compiler:$room_version" //для room
+    implementation "com.github.dhaval2404:imagepicker:$imagepicker_version" //для работы с картинками
 
 }

@@ -12,7 +12,7 @@ import ru.netologia.nmedia.dao.PostDao
 //import ru.netologia.nmedia.dao.PostDaoImpl
 import ru.netologia.nmedia.entity.PostEntity
 
-@Database(entities = [PostEntity::class], version = 2, exportSchema = false)
+@Database(entities = [PostEntity::class], version = 3, exportSchema = false)
 abstract class AppDb : RoomDatabase() {
     abstract fun postDao(): PostDao
 

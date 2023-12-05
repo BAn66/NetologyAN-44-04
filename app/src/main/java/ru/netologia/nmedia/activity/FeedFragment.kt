@@ -93,6 +93,14 @@ class FeedFragment : Fragment() {
                 findNavController().navigate(R.id.action_feedFragment_to_postFragment)
 
             }
+
+            override fun openImage(post: Post) {
+                // Здесь мы можем использовать Kotlin экстеншен функцию из fragment-ktx
+                val resultId = post.id
+                setFragmentResult("requestIdForImageFragment", bundleOf("id" to resultId))
+                findNavController().navigate(R.id.action_feedFragment_to_imageFragment)
+
+            }
         })
 
         binding.list.adapter = adapter

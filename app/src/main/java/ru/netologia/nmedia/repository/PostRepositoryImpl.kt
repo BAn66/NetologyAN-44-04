@@ -13,12 +13,21 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 
 import kotlinx.coroutines.flow.map
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.Response
+//import retrofit2.http.Multipart
 //import okhttp3.Dispatcher
 import ru.netologia.nmedia.dao.PostDao
+import ru.netologia.nmedia.dto.Attachment
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.toDto
 import ru.netologia.nmedia.entity.toEntity
+import ru.netologia.nmedia.enumeration.AttachmentType
 import ru.netologia.nmedia.error.*
+import ru.netologia.nmedia.model.PhotoModel
+import ru.netology.nmedia.dto.Media
+import java.io.File
 
 
 class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
@@ -70,7 +79,13 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(body.toEntity().map { it.copy(savedOnServer = true, showed = false) })//вставляем в базу, скопированный ответ с сервера с нужными нам маркерами, записан на сервере и не показывать.
+            dao.insert(
+                body.toEntity().map {
+                    it.copy(
+                        savedOnServer = true,
+                        showed = false
+                    )
+                })//вставляем в базу, скопированный ответ с сервера с нужными нам маркерами, записан на сервере и не показывать.
             emit(body.size)
         }
     }
@@ -174,6 +189,54 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             throw UnknownError
         }
 
+    }
+
+    override suspend fun saveWithAttachment(postCopy: Post, photoModel: PhotoModel) {
+        try {
+
+            val mediaResponse = saveMediaOnServer(photoModel.file)
+            if (!mediaResponse.isSuccessful) {
+                responseErrMess = Pair(mediaResponse.code(), mediaResponse.message())
+                throw ApiError(mediaResponse.code(), mediaResponse.message())
+            }
+            val media = mediaResponse.body() ?: throw ApiError(
+                mediaResponse.code(),
+                mediaResponse.message()
+            )
+
+            val postEntentety = PostEntity.fromDto(postCopy)
+            dao.insert(postEntentety)
+
+            val response = PostsApi.retrofitService.save(
+                postCopy.copy(
+                    id = 0,
+                    attachment = Attachment(
+                        media.id,
+                        AttachmentType.IMAGE
+                    )
+                )
+            )
+
+            if (!response.isSuccessful) {
+                responseErrMess = Pair(response.code(), response.message())
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            dao.saveOnServerSwitch(body.id)
+
+        } catch (e: IOException) {
+            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
+            throw NetworkError
+        } catch (e: Exception) {
+            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
+            throw UnknownError
+        }
+        getAll()
+    }
+
+    private suspend fun saveMediaOnServer(file: File): Response<Media> {
+        val part = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody())
+        return PostsApi.retrofitService.saveMediaOnServer(part)
     }
 }
 

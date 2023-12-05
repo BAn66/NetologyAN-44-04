@@ -3,6 +3,7 @@ package ru.netologia.nmedia.repository
 //import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 import ru.netologia.nmedia.dto.Post
+import ru.netologia.nmedia.model.PhotoModel
 
 interface PostRepository {
     //Для рума/ретрофита с корутинами добавим свойство которое будет отвечать за предоставление данных в виде LiveData
@@ -16,6 +17,7 @@ interface PostRepository {
     suspend fun likeById(id: Long, likedByMe: Boolean)
     // suspend fun getPostById(id: Long)
     fun getErrMess(): Pair<Int, String>
+    suspend fun saveWithAttachment(postCopy: Post, photoModel: PhotoModel)
 }
 
  //для ретрофита без всего

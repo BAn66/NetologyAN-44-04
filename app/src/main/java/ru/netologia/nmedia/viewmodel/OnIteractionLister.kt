@@ -7,4 +7,5 @@ interface OnIteractionLister{
     fun edit(post: Post)
 //    fun playVideo(post: Post)
     fun openPost(post: Post)
+    fun openImage(post: Post)
 }

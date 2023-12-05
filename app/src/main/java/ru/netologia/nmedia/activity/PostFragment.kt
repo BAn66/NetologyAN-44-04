@@ -59,6 +59,15 @@ class PostFragment: Fragment (){
 //            }
 
             override fun openPost(post: Post) {
+                TODO("Not yet implemented")
+            }
+
+            override fun openImage(post: Post) {
+                // Здесь мы можем использовать Kotlin экстеншен функцию из fragment-ktx
+                val resultId = post.id
+                setFragmentResult("requestIdForImageFragment", bundleOf("id" to resultId))
+                findNavController().navigate(R.id.action_postFragment_to_imageFragment)
+
             }
         })
 
