@@ -21,7 +21,6 @@ import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
-import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentNewPostBinding
@@ -135,34 +134,60 @@ class NewPostFragment : Fragment() {
 //
 //        }
         //Версия меню для сохранения поста
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.clear()
-                menuInflater.inflate(R.menu.save_post, menu)
-                menu.close()
+//        requireActivity().addMenuProvider(object : MenuProvider {
+//            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+//                menu.clear()
+//                menuInflater.inflate(R.menu.save_post, menu)
+//                menu.close()
+//
+//            }
+//
+//            override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
+//                when (menuItem.itemId) {
+//                    R.id.save -> {
+//                        if (!binding.editTextNewPost.text.isNotBlank()
+////                            && !binding.imageContainer.isVisible
+//                            ) {
+//                            Snackbar.make(
+//                                binding.root, R.string.error_empty_content,
+//                                BaseTransientBottomBar.LENGTH_INDEFINITE
+//                            )
+//                                .setAction(android.R.string.ok) {
+//                                }.show()
+//                        } else {
+//                            val content = binding.editTextNewPost.text.toString()
+//                            viewModel.changeContentAndSave(content)
+////                            toastErrMess(viewModel)
+//                        }
+//                        true
+//                    }
+//
+//                    else -> false
+//                }
+//
+//        })
 
+        var showMenu = false
+        requireActivity().addMenuProvider(object : MenuProvider {
+
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                showMenu = true
+                menuInflater.inflate(R.menu.save_post, menu)
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
+                menu.findItem(R.id.save).isVisible = showMenu
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
                 when (menuItem.itemId) {
                     R.id.save -> {
-                        if (!binding.editTextNewPost.text.isNotBlank()
-//                            && !binding.imageContainer.isVisible
-                            ) {
-                            Snackbar.make(
-                                binding.root, R.string.error_empty_content,
-                                BaseTransientBottomBar.LENGTH_INDEFINITE
-                            )
-                                .setAction(android.R.string.ok) {
-                                }.show()
-                        } else {
-                            val content = binding.editTextNewPost.text.toString()
-                            viewModel.changeContentAndSave(content)
-//                            toastErrMess(viewModel)
-                        }
+                        val content = binding.editTextNewPost.text.toString()
+                        viewModel.changeContentAndSave(content)
+                        showMenu = false
+                        activity?.invalidateOptionsMenu()
                         true
                     }
-
                     else -> false
                 }
 
@@ -172,6 +197,7 @@ class NewPostFragment : Fragment() {
             viewModel.loadPosts()// не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
             toastErrMess(viewModel)
             findNavController().popBackStack(R.id.feedFragment, false)
+            activity?.invalidateOptionsMenu()
         }
 
         binding.remove.setOnClickListener {
@@ -215,6 +241,7 @@ class NewPostFragment : Fragment() {
             }
             setFragmentResult("requestTmpContent", bundleOf("tmpContent" to tmpContent))
             findNavController().popBackStack(R.id.feedFragment, false)
+            activity?.invalidateOptionsMenu()
         }
 // Старая версия кнопки отмены сохранения поста
 //        binding.cancelAddPost.setOnClickListener{

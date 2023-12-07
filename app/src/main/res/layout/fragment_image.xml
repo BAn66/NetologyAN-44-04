@@ -84,8 +84,7 @@
             android:layout_weight="1"
             android:background="?selectableItemBackground"
             android:contentDescription="@string/description_viewed"
-            android:padding="@dimen/common_pudding"
-            android:textColor="@color/white"
+                        android:textColor="@color/white"
             app:icon="@drawable/ic_viewed_eye_24"
             app:iconTint="@color/white"
             tools:text="@sample/posts.json/data/viewCount" />
