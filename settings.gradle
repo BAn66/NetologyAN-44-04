@@ -10,6 +10,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {url "https://jitpack.io"} //дает возможность скачивать репозитории с джитпака
     }
 }
 rootProject.name = "My Application"

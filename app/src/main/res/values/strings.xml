@@ -27,4 +27,6 @@
     <string name="retry_loading">RETRY</string>
     <string name="description_showNew">Newest posts</string>
     <string name="save">Save</string>
+    <string name="remove">remove</string>
+    <string name="description_image">image</string>
 </resources>

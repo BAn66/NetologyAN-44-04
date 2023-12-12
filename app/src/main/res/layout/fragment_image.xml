@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.ImageFragment"
+    android:background="@color/black">
+
+    <ImageView
+        android:id="@+id/image_from_post"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:src="@drawable/video_holder"
+        android:contentDescription="@string/description_image"
+        android:layout_gravity="center_vertical"
+        android:backgroundTint="@color/black"
+             />
+
+<!--    <androidx.constraintlayout.widget.Barrier-->
+<!--        android:id="@+id/barrierImage"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:barrierDirection="bottom"-->
+<!--        app:constraint_referenced_ids="image_from_post" />-->
+
+    <LinearLayout
+        android:id="@+id/bottomAppBar"
+        style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:layout_gravity="bottom"
+        android:background="@color/black"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLike"
+            style="@style/Widget.AppTheme.LikeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?selectableItemBackground"
+            android:contentDescription="@string/description_liked_count"
+            android:textColor="@color/white"
+            app:icon="@drawable/ic_liked_24"
+            app:iconTint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="@sample/posts.json/data/likedCount" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnShare"
+            style="@style/Widget.AppTheme.LikeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?selectableItemBackground"
+            android:contentDescription="@string/description_liked_count"
+            android:textColor="@color/white"
+
+            app:icon="@drawable/ic_share_24"
+            app:iconTint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnLike"
+            tools:text="@sample/posts.json/data/sharedCount" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEmpty"
+            style="@style/Widget.AppTheme.LikeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="9"
+            android:background="?selectableItemBackground"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/btnShare" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViews"
+            style="@style/Widget.AppTheme.LikeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_weight="1"
+            android:background="?selectableItemBackground"
+            android:contentDescription="@string/description_viewed"
+                        android:textColor="@color/white"
+            app:icon="@drawable/ic_viewed_eye_24"
+            app:iconTint="@color/white"
+            tools:text="@sample/posts.json/data/viewCount" />
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

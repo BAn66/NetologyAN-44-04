@@ -1,6 +1,7 @@
 package ru.netologia.nmedia.viewmodel
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -16,9 +17,11 @@ import ru.netologia.nmedia.db.AppDb
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.model.FeedModel
 import ru.netologia.nmedia.model.FeedModelState
+import ru.netologia.nmedia.model.PhotoModel
 import ru.netologia.nmedia.repository.PostRepository
 import ru.netologia.nmedia.repository.PostRepositoryImpl
 import ru.netologia.nmedia.util.SingleLiveEvent
+import java.io.File
 
 
 private val empty = Post(
@@ -37,25 +40,31 @@ private val empty = Post(
 
 //class PostViewModel(application: Application, myRepository: PostRepository) :
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-// Работа с сетевыми запросами
+    // Работа с сетевыми запросами
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
-    var haveNew: Boolean = true //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
+    var haveNew: Boolean =
+        true //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
+
 
     //    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели //Без Flow
     val data: LiveData<FeedModel> = repository.data
         .map(::FeedModel)
-        .catch { errorMessage = repository.getErrMess()
+        .catch {
+            errorMessage = repository.getErrMess()
 //                _dataState.value = FeedModelState(error = true)
         }
         .asLiveData(Dispatchers.Default) //запускаем не на главном потоке
+
+    private val _photo = MutableLiveData<PhotoModel?>(null)  //Для картинок
+    val photo: LiveData<PhotoModel?>
+        get() = _photo
 
     val newerCount = data.switchMap {
         repository.getNewer(it.posts.firstOrNull()?.id ?: 0L)
             .asLiveData(Dispatchers.Default)
 
     }
-
 
 
     private val _dataState = MutableLiveData(FeedModelState()) //Состояние
@@ -70,6 +79,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadPosts()
+    }
+
+    fun setPhoto(uri: Uri, file: File) {
+        _photo.value = PhotoModel(uri, file)
     }
 
     fun loadPosts() = viewModelScope.launch { //Загружаем посты c помщью коротюнов и вьюмоделскоуп
@@ -111,27 +124,29 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         val text: String = content.trim()
         //функция изменения и сохранения в репозитории
         edited.value?.let {
-            _postCreated.value = Unit
+            val postCopy = it.copy(
+                content = text,
+                author = "me",
+                published = System.currentTimeMillis()
+            )
             viewModelScope.launch {
                 try {
-                    if (it.content != text) {
-                        repository.save(
-                            it.copy(
-                                content = text,
-                                author = "me",
-                                published = System.currentTimeMillis()
-                            )
-                        )
+                    val photoModel = _photo.value
+                    if (photoModel == null && it.content != text) {
+                        repository.save(postCopy)
+
+                    } else if (photoModel != null && it.content != text) {
+                        repository.saveWithAttachment(postCopy, photoModel)
                     }
                     _dataState.value = FeedModelState()
+                    _postCreated.value = Unit
                 } catch (e: Exception) {
                     errorMessage = repository.getErrMess()
                     _dataState.value = FeedModelState(error = true)
                 }
-
             }
         }
-        edited.value = empty
+        emptyNew()
     }
 
     fun edit(post: Post) {
@@ -219,6 +234,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 ////            }
 ////
 ////        })
+    }
+
+    fun clearPhoto() {
+        _photo.value = null
     }
 }
 
