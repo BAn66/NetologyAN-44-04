@@ -16,6 +16,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import ru.netologia.nmedia.BuildConfig
+import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.dto.Post
 import ru.netology.nmedia.dto.Media
 
@@ -23,13 +24,24 @@ import ru.netology.nmedia.dto.Media
 //private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
 private const val BASE_URL = "${BuildConfig.BASE_URL}/api/slow/"
 
-//логгер и ретрофит
+//Перехватчик для логгера и ретрофит
 val logger = HttpLoggingInterceptor().apply {
     if (BuildConfig.DEBUG) {
         level = HttpLoggingInterceptor.Level.BODY
     }
 }
-val clientOkHttp = OkHttpClient.Builder().addInterceptor(logger).build()
+val clientOkHttp = OkHttpClient.Builder()
+    .addInterceptor{ chain ->
+        AppAuth.getInstance().authState.value.token?.let { token->
+            val newRequest = chain.request().newBuilder()
+                .addHeader("Authorization", token)
+                .build()
+            return@addInterceptor chain.proceed(newRequest)
+        }
+        chain.proceed(chain.request())
+    }
+    .addInterceptor(logger)
+    .build()
 
 val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
