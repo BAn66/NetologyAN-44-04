@@ -10,9 +10,12 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.db.AppDb
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.model.FeedModel
@@ -27,6 +30,7 @@ import java.io.File
 private val empty = Post(
     id = 0L,
     author = "",
+    authorId = 0L,
     authorAvatar = "",
     published = 0L,
     content = "",
@@ -48,13 +52,31 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
 
     //    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели //Без Flow
-    val data: LiveData<FeedModel> = repository.data
-        .map(::FeedModel)
-        .catch {
-            errorMessage = repository.getErrMess()
-//                _dataState.value = FeedModelState(error = true)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val data: LiveData<FeedModel> = AppAuth.getInstance()//Добавляем флоу для Auth
+        .authState
+        .flatMapLatest {auth ->
+            repository.data
+                .map {posts ->
+                    FeedModel(
+                        posts.map{it.copy(ownedByMe = auth.id == it.authorId)},
+                        posts.isEmpty()
+                    )
+                }
+                .catch {
+                    errorMessage = repository.getErrMess()
+                }
         }
-        .asLiveData(Dispatchers.Default) //запускаем не на главном потоке
+        .asLiveData(Dispatchers.Default)
+
+//        repository.data //только для флоу c постами
+//        .map(::FeedModel)
+//        .catch {
+//            errorMessage = repository.getErrMess()
+////                _dataState.value = FeedModelState(error = true)
+//        }
+//        .asLiveData(Dispatchers.Default) //запускаем не на главном потоке
 
     private val _photo = MutableLiveData<PhotoModel?>(null)  //Для картинок
     val photo: LiveData<PhotoModel?>
@@ -125,9 +147,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         //функция изменения и сохранения в репозитории
         edited.value?.let {
             val postCopy = it.copy(
-                content = text,
+//                authorId = 555,
                 author = "me",
-                published = System.currentTimeMillis()
+                content = text,
+                published = System.currentTimeMillis(),
+//                ownedByMe = true
             )
             viewModelScope.launch {
                 try {
