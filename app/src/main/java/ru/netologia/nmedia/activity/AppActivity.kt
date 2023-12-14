@@ -5,19 +5,35 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.NewPostFragment.Companion.text
+import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.ActivityAppBinding
+import ru.netologia.nmedia.viewmodel.AuthViewModel
 
 
 class AppActivity : AppCompatActivity() {
+
+    val viewModel by viewModels<AuthViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +53,7 @@ class AppActivity : AppCompatActivity() {
                 return@let
             }
             val navHostFragment =
-                supportFragmentManager.findFragmentById(R.id.container) as NavHostFragment
+                supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
             val navController = navHostFragment.navController
 
             navController.navigate(R.id.action_feedFragment_to_newPostFragment,
@@ -46,21 +62,78 @@ class AppActivity : AppCompatActivity() {
             )
         }
 
+
+
+
+
+
+        lifecycleScope.launch {// принудительное обновление меню, при различных действиях
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) { //Наблюдает за авторизацией только когда активити доступно для взаимодействия
+                viewModel.data.collect {
+                    invalidateOptionsMenu()
+                }
+            }
+        }
+        addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_main, menu)
+            }
+
+            override fun onPrepareMenu(menu: Menu) { //Видимость пунктов меню в зависимости от того залоген юзер или нет
+                menu.setGroupVisible(R.id.authenticated, viewModel.authenticated)
+                menu.setGroupVisible(R.id.unauthenticated, !viewModel.authenticated)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.signin -> {
+                        AppAuth.getInstance().setAuth(5, "x-token")
+                        true
+                    } //Временная заглушка
+                    R.id.signup -> {
+                        AppAuth.getInstance().setAuth(5, "x-token")
+                        true
+                    }
+
+                    R.id.signout -> {
+                        AppAuth.getInstance().removeAuth()
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        })
+
+
         requestNotificationsPermission()
         checkGoogleApiAvailability()
 
+
     }
 
-    private fun requestNotificationsPermission(){
+    override fun onStart() {
+        super.onStart()
+        //Кнопка навигации меню слева от имени приложения при добавлении нового поста
+        findNavController(R.id.nav_host_fragment)
+            .addOnDestinationChangedListener {
+                    controller,
+                    destination,
+                    arguments -> supportActionBar?.setDisplayHomeAsUpEnabled( destination.id == R.id.newPostFragment)
+                //TODO не переходит назад
+            }
+    }
+
+    private fun requestNotificationsPermission() {
 //        проверка на версию андроида выше 13 версии, для
 //        получения разрешений для работы с приложением
 //        токен eT3Cv-eKTJiKu1knufWCEJ:APA91bFX1Se1NZteaU7nCWfM3jKItD5PecOGImRHyxn-ZIParoULkXa78wudJU4I7p_AqKcLoSCRJJRVYKFc607QyCi2f79wmIgvFXiWwOPsTdUZU6Ujvf0YUaFbITdKIGoNSDD_xZbf
         println("запрос разрешений")
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return
         }
         val permission = android.Manifest.permission.POST_NOTIFICATIONS
-        if(checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED){
+        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
             return
         }
 
@@ -70,12 +143,12 @@ class AppActivity : AppCompatActivity() {
     //проверка на установленную google Api, на Huawei нет такого апи например
     private fun checkGoogleApiAvailability() {
         println("запрос апи")
-        with(GoogleApiAvailability.getInstance()){
+        with(GoogleApiAvailability.getInstance()) {
             val code = isGooglePlayServicesAvailable(this@AppActivity)
-            if (code == ConnectionResult.SUCCESS){
+            if (code == ConnectionResult.SUCCESS) {
                 return@with
             }
-            if (isUserResolvableError(code)){
+            if (isUserResolvableError(code)) {
                 getErrorDialog(this@AppActivity, code, 9000)?.show()
                 return
             }

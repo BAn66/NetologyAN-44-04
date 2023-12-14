@@ -9,6 +9,6 @@ class NMediaApplication: Application() { // Запускается самым п
         AppAuth.initAuth(this)
 
         //TODO REMOVE BEFORE RELeaze
-        AppAuth.getInstance().setAuth(5, "x-token") //Временная заглушка
+
     }
 }

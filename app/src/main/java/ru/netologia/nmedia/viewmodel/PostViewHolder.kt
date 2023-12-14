@@ -99,7 +99,7 @@ class PostViewHolder(
             published.setOnClickListener { onIteractionLister.openPost(post) }
             imageHolder.setOnClickListener{onIteractionLister.openImage(post)}
 
-            menu.isVisible = post.ownedByMe
+            menu.isVisible = post.ownedByMe  //Меню видно если пост наш
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.options_post)
