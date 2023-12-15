@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -19,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
@@ -64,9 +66,6 @@ class AppActivity : AppCompatActivity() {
 
 
 
-
-
-
         lifecycleScope.launch {// принудительное обновление меню, при различных действиях
             lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) { //Наблюдает за авторизацией только когда активити доступно для взаимодействия
                 viewModel.data.collect {
@@ -87,9 +86,17 @@ class AppActivity : AppCompatActivity() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.signin -> {
-                        AppAuth.getInstance().setAuth(5, "x-token")
+                        findNavController(R.id.nav_host_fragment)
+                            .navigate(R.id.authFragment)
+//                            .addOnDestinationChangedListener { controller,
+//                                                               destination,
+//                                                               arguments ->
+//                                supportActionBar?.setDisplayHomeAsUpEnabled(destination.id == R.id.authFragment)
+//                            }
+
+                        AppAuth.getInstance().setAuth(5, "x-token") //Временная заглушка
                         true
-                    } //Временная заглушка
+                    }
                     R.id.signup -> {
                         AppAuth.getInstance().setAuth(5, "x-token")
                         true
@@ -112,14 +119,15 @@ class AppActivity : AppCompatActivity() {
 
     }
 
+
     override fun onStart() {
         super.onStart()
         //Кнопка навигации меню слева от имени приложения при добавлении нового поста
         findNavController(R.id.nav_host_fragment)
-            .addOnDestinationChangedListener {
-                    controller,
-                    destination,
-                    arguments -> supportActionBar?.setDisplayHomeAsUpEnabled( destination.id == R.id.newPostFragment)
+            .addOnDestinationChangedListener { controller,
+                                               destination,
+                                               arguments ->
+                supportActionBar?.setDisplayHomeAsUpEnabled(destination.id == R.id.newPostFragment)
                 //TODO не переходит назад
             }
     }
