@@ -40,9 +40,9 @@
             android:name=".activity.EditPostActivity"
             android:exported="false" />
 
-        <activity
-            android:name=".activity.AuthFragment"
-            android:exported="false" />
+<!--        <activity-->
+<!--            android:name=".activity.AuthFragment"-->
+<!--            android:exported="false" />-->
 
         <service
             android:name=".service.FCMService"
