@@ -58,6 +58,7 @@ class AuthFragment : Fragment() {
 
         binding.signin.setOnClickListener {
             viewModel.sendRequest(binding.editLogin.text.toString(), binding.editPassword.text.toString())
+            findNavController().popBackStack()
         }
 
         // При нажатии системной кнопки назад

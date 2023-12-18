@@ -3,6 +3,7 @@ package ru.netologia.nmedia.repository
 //import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 import ru.netologia.nmedia.dto.Post
+import ru.netologia.nmedia.dto.Token
 import ru.netologia.nmedia.model.PhotoModel
 
 interface PostRepository {
@@ -18,6 +19,7 @@ interface PostRepository {
     // suspend fun getPostById(id: Long)
     fun getErrMess(): Pair<Int, String>
     suspend fun saveWithAttachment(postCopy: Post, photoModel: PhotoModel)
+    suspend fun requestToken(login: String, password: String): Token
 }
 
  //для ретрофита без всего

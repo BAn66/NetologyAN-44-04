@@ -94,7 +94,7 @@ class AppActivity : AppCompatActivity() {
 //                                supportActionBar?.setDisplayHomeAsUpEnabled(destination.id == R.id.authFragment)
 //                            }
 
-                        AppAuth.getInstance().setAuth(5, "x-token") //Временная заглушка
+//                        AppAuth.getInstance().setAuth(5, "x-token") //Временная заглушка
                         true
                     }
                     R.id.signup -> {

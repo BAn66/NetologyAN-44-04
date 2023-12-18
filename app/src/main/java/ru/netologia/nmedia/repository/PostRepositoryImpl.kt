@@ -20,6 +20,7 @@ import retrofit2.Response
 //import okhttp3.Dispatcher
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.dto.Attachment
+import ru.netologia.nmedia.dto.Token
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.toDto
 import ru.netologia.nmedia.entity.toEntity
@@ -237,6 +238,25 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     private suspend fun saveMediaOnServer(file: File): Response<Media> {
         val part = MultipartBody.Part.createFormData("file", file.name, file.asRequestBody())
         return PostsApi.retrofitService.saveMediaOnServer(part)
+    }
+
+    override suspend fun requestToken(login: String, password: String): Token {
+        try {
+            val response = PostsApi.retrofitService.updateUser(login, password)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            return body
+
+        } catch (e: IOException) {
+            responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
+            throw NetworkError
+
+        } catch (e: Exception) {
+            responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
+            throw UnknownError
+        }
     }
 }
 
