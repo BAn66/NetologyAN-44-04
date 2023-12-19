@@ -135,7 +135,7 @@ class FeedFragment : Fragment() {
         }
 
         viewModel.newerCount.observe(viewLifecycleOwner) {
-            binding.showNew.isVisible = true
+            binding.showNew.isVisible = it > 0 //Условия видимости можно сменить на it > 0, в таком случае плашка не будет отображаться когда новых постов нет.
             println("$it posts add")
         }
 
