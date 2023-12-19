@@ -20,6 +20,7 @@ import retrofit2.http.Path
 import ru.netologia.nmedia.BuildConfig
 import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.dto.Post
+import ru.netologia.nmedia.dto.PushToken
 import ru.netologia.nmedia.dto.Token
 import ru.netology.nmedia.dto.Media
 
@@ -80,7 +81,10 @@ interface PostsApiService {
 
     @FormUrlEncoded
     @POST("users/authentication")
-    suspend fun updateUser(@Field("login") login: String, @Field("pass") pass: String): Response<Token>
+    suspend fun updateUser(@Field("login") login: String, @Field("pass") pass: String): Response<Token> //Запрос на SignIn
+
+@POST("users/push-tokens")
+suspend fun sendPushToken(@Body token: PushToken): Response<Unit>
 
 }
 

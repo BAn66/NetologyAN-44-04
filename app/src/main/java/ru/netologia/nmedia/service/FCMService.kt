@@ -16,6 +16,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.AppActivity
+import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.service.FCMService.Actions.*
 import kotlin.random.Random
 
@@ -47,12 +48,19 @@ class FCMService : FirebaseMessagingService() {
         println(Gson().toJson(message))
     }
 
+    override fun onNewToken(token: String){ //для пушей, если появился новый токен
+        //        super.onNewToken(token)
+        AppAuth.getInstance().sendPushToken()
+        println("Это токен:")
+        println(token)
+    }
+
     private fun handleLike(like: Like) {//обработка активности Лайк полученной из сообщения
        //это для рекации на нажатие на увдомление, чтобы уйти на экран приложения
         val intent = Intent(this, AppActivity::class.java)
         val pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        //устанавливаем уведомление данные в нем и все такое
+        //при новой установке уведомление, данные в нем и все такое
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.post_avatar_drawable) //установка иконки уведомления
             .setContentText(getString(R.string.notification_user_like, like.userName, like.postAuthor)) //что будет в сообщениии
@@ -134,11 +142,6 @@ class FCMService : FirebaseMessagingService() {
         val userId: Int, val userName: String,  val postContent: String
     )
 
-    override fun onNewToken(token: String) {
-//        super.onNewToken(token)
-        println("Это токен:")
-        println(token)
-    }
 
     enum class Actions {
         LIKE,

@@ -1,9 +1,16 @@
 package ru.netologia.nmedia.auth
 
 import android.content.Context
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import ru.netologia.nmedia.api.PostsApi
+import ru.netologia.nmedia.dto.PushToken
 import java.lang.IllegalStateException
 
 class AppAuth private constructor(context: Context) { //делаем синглтон с реализацией в компанион обжекте
@@ -16,6 +23,7 @@ class AppAuth private constructor(context: Context) { //делаем сингл�
            prefs.getString(KEY_TOKEN, null)
        )
     )
+
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
     @Synchronized
@@ -26,7 +34,9 @@ class AppAuth private constructor(context: Context) { //делаем сингл�
             putString(KEY_TOKEN, token)
             commit()
         }
+        sendPushToken()
     }
+
 
     @Synchronized
     fun removeAuth(){
@@ -34,6 +44,19 @@ class AppAuth private constructor(context: Context) { //делаем сингл�
         with(prefs.edit()){
             clear()
             commit()
+        }
+        sendPushToken()
+    }
+
+
+    fun sendPushToken(token: String? = null ){ //PUSHes // запускается при каком либо изменении авторизации (добавил в методах выше)
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val pushToken = PushToken(token ?: FirebaseMessaging.getInstance().token.await())
+                PostsApi.retrofitService.sendPushToken(pushToken)
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
         }
     }
 

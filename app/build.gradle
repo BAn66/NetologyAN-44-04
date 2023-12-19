@@ -92,6 +92,7 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:$retrofitgson_version"
 //    implementation "org.jetbrains.kotlinx:kotlin-coroutines-core" // Корутины kotlin
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version" //Корутины Андроид
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$coroutines_version" //Доп. библиотека корутюн для пушей файрбейза
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
