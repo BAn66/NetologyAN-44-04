@@ -4,4 +4,6 @@
     <dimen name="avatar_size">48dp</dimen>
     <dimen name="count_pudding">8dp</dimen>
     <dimen name="fab_margin">4dp</dimen>
+    <dimen name="activity_vertical_margin">16</dimen>
+    <dimen name="activity_horizontal_margin">16</dimen>
 </resources>

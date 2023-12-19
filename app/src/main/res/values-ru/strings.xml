@@ -30,5 +30,9 @@
     <string name="save">Сохранить</string>
     <string name="remove">удалить</string>
     <string name="description_image">изображение</string>
+    <string name="auth_screen">"Авторизация"</string>
+    <string name="login">Имя</string>
+    <string name="password">Пароль</string>
+    <string name="sign_in">Войти</string>
 
 </resources>

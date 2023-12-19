@@ -29,4 +29,8 @@
     <string name="save">Save</string>
     <string name="remove">remove</string>
     <string name="description_image">image</string>
+    <string name="auth_screen">Sign in screen</string>
+    <string name="login">Username</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign in</string>
 </resources>

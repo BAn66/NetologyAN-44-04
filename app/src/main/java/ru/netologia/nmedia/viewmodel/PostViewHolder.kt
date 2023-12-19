@@ -3,6 +3,7 @@ package ru.netologia.nmedia.viewmodel
 
 import android.widget.ImageView
 import android.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -98,6 +99,7 @@ class PostViewHolder(
             published.setOnClickListener { onIteractionLister.openPost(post) }
             imageHolder.setOnClickListener{onIteractionLister.openImage(post)}
 
+            menu.isVisible = post.ownedByMe  //Меню видно если пост наш
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.options_post)
