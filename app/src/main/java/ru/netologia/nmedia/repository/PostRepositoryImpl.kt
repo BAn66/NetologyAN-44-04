@@ -8,10 +8,8 @@ import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-
 import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -62,10 +60,12 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
 
         } catch (e: IOException) {
+//            e.printStackTrace()
             responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
             throw NetworkError
 
         } catch (e: Exception) {
+//            e.printStackTrace()
             responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }

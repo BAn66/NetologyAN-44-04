@@ -16,6 +16,7 @@ import ru.netologia.nmedia.entity.PostEntity
 abstract class AppDb : RoomDatabase() {
     abstract fun postDao(): PostDao
 
+
     companion object {
         @Volatile
         private var instance: AppDb? = null
