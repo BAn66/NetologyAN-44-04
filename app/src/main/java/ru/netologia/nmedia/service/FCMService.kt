@@ -57,13 +57,12 @@ class FCMService : FirebaseMessagingService() {
         val recipientId = Gson().fromJson(message.data["content"], PushMessage::class.java).recipientId
         val id = AppAuth.getInstance().authState.value.id
         when {
+            recipientId == null-> handPushMessage(Gson().fromJson(message.data["content"], PushMessage::class.java))
+            recipientId == 0L -> AppAuth.getInstance().sendPushToken()
+            recipientId != 0L -> AppAuth.getInstance().sendPushToken()
             recipientId == id ->  handPushMessage(Gson().fromJson(message.data["content"], PushMessage::class.java))
-            recipientId == 0L && recipientId != id-> AppAuth.getInstance().sendPushToken()
-            recipientId != 0L && recipientId != id-> AppAuth.getInstance().sendPushToken()
-            recipientId == null -> handPushMessage(Gson().fromJson(message.data["content"], PushMessage::class.java))
             else -> handNotEnum()
         }
-
     }
 
     override fun onNewToken(token: String){ //для пушей, если появился новый токен2
@@ -186,7 +185,8 @@ class FCMService : FirebaseMessagingService() {
     )
 
     data class PushMessage(
-        val recipientId: Long, val content: String
+        val recipientId: Long?,
+        val content: String
     )
 
 
