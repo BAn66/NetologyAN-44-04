@@ -26,6 +26,7 @@ import ru.netologia.nmedia.repository.PostRepository
 import ru.netologia.nmedia.repository.PostRepositoryImpl
 import ru.netologia.nmedia.util.SingleLiveEvent
 import java.io.File
+import javax.inject.Inject
 
 
 private val empty = Post(
@@ -45,7 +46,7 @@ private val empty = Post(
 
 //class PostViewModel(application: Application, myRepository: PostRepository) :
 //class PostViewModel(application: Application) : AndroidViewModel(application) { // до внедрения зависимостей
-class PostViewModel(
+class PostViewModel @Inject constructor(
     private val repository: PostRepository,
     appAuth: AppAuth
 

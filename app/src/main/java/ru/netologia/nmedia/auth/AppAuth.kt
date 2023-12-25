@@ -13,8 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 //import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.work.SendPushTokenWorker
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppAuth(context: Context) { //делаем синглтон с реализацией в компанион обжекте
+@Singleton
+class AppAuth @Inject constructor(context: Context) { //делаем синглтон с реализацией в компанион обжекте
 
     private val contextForWorker = context
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)

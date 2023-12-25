@@ -4,10 +4,12 @@ package ru.netologia.nmedia.viewmodel
 import androidx.lifecycle.ViewModel
 //import androidx.lifecycle.asLiveData
 import ru.netologia.nmedia.auth.AppAuth
+import javax.inject.Inject
+
 //import ru.netologia.nmedia.di.DependencyContainer
 //import ru.netologia.nmedia.repository.PostRepository
 
-class AuthViewModel(
+class AuthViewModel @Inject constructor(
 
     private val appAuth: AppAuth
 ): ViewModel() {

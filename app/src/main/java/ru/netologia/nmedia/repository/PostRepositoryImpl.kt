@@ -28,9 +28,10 @@ import ru.netologia.nmedia.error.*
 import ru.netologia.nmedia.model.PhotoModel
 import ru.netology.nmedia.dto.Media
 import java.io.File
+import javax.inject.Inject
 
 
-class PostRepositoryImpl(
+class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService: PostsApiService //Заменяем этим аписервисом, все вызовы PostsApi.retrofitService
 ) : PostRepository {
