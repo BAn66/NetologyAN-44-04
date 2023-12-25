@@ -58,10 +58,10 @@ class FCMService : FirebaseMessagingService() {
         val id = AppAuth.getInstance().authState.value.id
         when {
             recipientId == null-> handPushMessage(Gson().fromJson(message.data["content"], PushMessage::class.java))
-            recipientId == 0L -> AppAuth.getInstance().sendPushToken()
-            recipientId != 0L -> AppAuth.getInstance().sendPushToken()
             recipientId == id ->  handPushMessage(Gson().fromJson(message.data["content"], PushMessage::class.java))
-            else -> handNotEnum()
+//            recipientId == 0L -> AppAuth.getInstance().sendPushToken()
+//            recipientId != 0L -> AppAuth.getInstance().sendPushToken()
+            else -> AppAuth.getInstance().sendPushToken()
         }
     }
 
