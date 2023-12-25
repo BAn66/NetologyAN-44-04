@@ -4,7 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
+//import android.os.Handler
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -12,15 +12,15 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
-import androidx.fragment.app.Fragment
+//import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
+//import androidx.navigation.NavController
+//import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
+//import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
@@ -28,14 +28,16 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.NewPostFragment.Companion.text
-import ru.netologia.nmedia.auth.AppAuth
+//import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.ActivityAppBinding
+import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.viewmodel.AuthViewModel
 
 
 class AppActivity : AppCompatActivity() {
 
-    val viewModel by viewModels<AuthViewModel>()
+private val viewModel by viewModels<AuthViewModel>()
+private val dependencyContainer = DependencyContainer.getInstance() //Внедрение контейнера зависимостей
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,12 +100,12 @@ class AppActivity : AppCompatActivity() {
                         true
                     }
                     R.id.signup -> {
-                        AppAuth.getInstance().setAuth(5, "x-token")
+                        dependencyContainer.appAuth.setAuth(5, "x-token")
                         true
                     }
 
                     R.id.signout -> {
-                        AppAuth.getInstance().removeAuth()
+                        dependencyContainer.appAuth.removeAuth()
                         true
                     }
 

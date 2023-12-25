@@ -7,20 +7,25 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.db.AppDb
+import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.dto.Token
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.repository.PostRepository
 import ru.netologia.nmedia.repository.PostRepositoryImpl
 
-class SignInViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository =
-        PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
+//class SignInViewModel(application: Application) : AndroidViewModel(application) { // До внедрения зависимости
+    class SignInViewModel(
+    private val repository: PostRepository,
+    private val appAuth: AppAuth,
+    ) : ViewModel() {
+//    private val repository: PostRepository = // До внедрения зависимости
+//        PostRepositoryImpl(dependencyContainer.(context = application).postDao(), dependencyContainer.apiService )
 
     fun sendRequest(login: String, password: String) {
         viewModelScope.launch {
             try {
                 val token: Token = repository.requestToken(login, password)
-                AppAuth.getInstance().setAuth(token.id, token.token)
+                appAuth.setAuth(token.id, token.token)
             } catch (e: Exception) {
             }
         }

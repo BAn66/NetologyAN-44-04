@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 //import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
@@ -43,10 +44,17 @@ private val empty = Post(
 )
 
 //class PostViewModel(application: Application, myRepository: PostRepository) :
-class PostViewModel(application: Application) : AndroidViewModel(application) {
+//class PostViewModel(application: Application) : AndroidViewModel(application) { // до внедрения зависимостей
+class PostViewModel(
+    private val repository: PostRepository,
+    appAuth: AppAuth
+
+):ViewModel(){
+
     // Работа с сетевыми запросами
-    private val repository: PostRepository =
-        PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
+
+//    private val repository: PostRepository = // до внедрения зависимостей
+//        PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
     var haveNew: Boolean =
         true //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
 
@@ -54,7 +62,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     //    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели //Без Flow
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val data: LiveData<FeedModel> = AppAuth.getInstance()//Добавляем флоу для Auth
+//    val data: LiveData<FeedModel> = AppAuth.getInstance()//Добавляем флоу для Auth  до внедрения зависимостей2
+    val data: LiveData<FeedModel> = appAuth//Добавляем флоу для Auth
         .authState
         .flatMapLatest {auth ->
             repository.data

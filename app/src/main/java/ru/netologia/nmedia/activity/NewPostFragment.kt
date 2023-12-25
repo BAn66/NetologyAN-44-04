@@ -34,12 +34,13 @@ import ru.netologia.nmedia.viewmodel.PostViewModel
 /** Работа через фрагменты */
 class NewPostFragment : Fragment() {
 
-
     companion object {
         var Bundle.text by StringArg
     }
 
-    private val viewModel: PostViewModel by activityViewModels()
+    private val viewModel: PostViewModel by activityViewModels(
+        factoryProducer = //Передаем контейнер зависимостей во вьюмодел
+    )
     private val photoResultContract =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { // Контракт для картинок
             if (it.resultCode == Activity.RESULT_OK) {

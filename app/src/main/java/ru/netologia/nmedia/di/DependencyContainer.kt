@@ -34,7 +34,7 @@ class DependencyContainer(
             return instance!!
         }
 
-            private fun buildDatabase(context: Context) =
+        private fun buildDatabase(context: Context) =
                 Room.databaseBuilder(context, AppDb::class.java, "app.db")
 //                .allowMainThreadQueries()
                     .fallbackToDestructiveMigration()
