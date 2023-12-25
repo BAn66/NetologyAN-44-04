@@ -1,6 +1,6 @@
 package ru.netologia.nmedia.di
 
-import android.annotation.SuppressLint
+//import android.annotation.SuppressLint
 import android.content.Context
 import androidx.room.Room
 import okhttp3.OkHttpClient
@@ -78,9 +78,9 @@ class DependencyContainer(
 
     val apiService = retrofit.create<PostsApiService>()
 
-    private val postDao = appBd.postDao()
+    val postDao = appBd.postDao()
 
-    private val repository: PostRepository = PostRepositoryImpl(
+    val repository: PostRepository = PostRepositoryImpl(
         postDao,
         apiService,
         )

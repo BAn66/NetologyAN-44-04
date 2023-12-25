@@ -17,17 +17,24 @@ import androidx.recyclerview.widget.RecyclerView.SmoothScroller
 import com.google.android.material.snackbar.Snackbar
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
+import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.dto.Post
 //import ru.netologia.nmedia.model.FeedModel
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
+import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
 
 /** Работа через фрагменты*/
 class FeedFragment : Fragment() {
-    private val viewModel: PostViewModel by activityViewModels()
+    private val dependencyContainer = DependencyContainer.getInstance()
+    private val viewModel: PostViewModel by activityViewModels(
+        factoryProducer = {
+            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
+        }
+    )
 
     fun toastErrMess(state: FeedModelState) {
         if (state.error) {

@@ -21,15 +21,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+//import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentNewPostBinding
+import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
 import ru.netologia.nmedia.util.StringArg
 import ru.netologia.nmedia.viewmodel.PostViewModel
+import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
 /** Работа через фрагменты */
 class NewPostFragment : Fragment() {
@@ -37,9 +40,12 @@ class NewPostFragment : Fragment() {
     companion object {
         var Bundle.text by StringArg
     }
-
+    private val dependencyContainer = DependencyContainer.getInstance()
     private val viewModel: PostViewModel by activityViewModels(
-        factoryProducer = //Передаем контейнер зависимостей во вьюмодел
+//        ownerProducer = :: requireParentFragment, //для viewModels()
+        factoryProducer = {
+            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
+        }//Передаем контейнер зависимостей во вьюмодел
     )
     private val photoResultContract =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { // Контракт для картинок

@@ -12,10 +12,12 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentPostBinding
+import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
+import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
 class PostFragment: Fragment (){
     override fun onCreateView(
@@ -24,7 +26,12 @@ class PostFragment: Fragment (){
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentPostBinding.inflate(layoutInflater)
-        val viewModel: PostViewModel by activityViewModels()
+        val dependencyContainer = DependencyContainer.getInstance()
+        val viewModel: PostViewModel by activityViewModels(
+            factoryProducer = {
+                ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
+            }
+        )
 
         val adapter = PostsAdapter(object : OnIteractionLister {
 

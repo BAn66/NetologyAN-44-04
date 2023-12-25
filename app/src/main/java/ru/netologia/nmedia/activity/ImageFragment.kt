@@ -5,19 +5,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
-import androidx.core.os.bundleOf
+//import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResult
+//import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentImageBinding
-import ru.netologia.nmedia.dto.Post
-import ru.netologia.nmedia.viewmodel.OnIteractionLister
+import ru.netologia.nmedia.di.DependencyContainer
+//import ru.netologia.nmedia.dto.Post
+//import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
-import ru.netologia.nmedia.viewmodel.PostsAdapter
+//import ru.netologia.nmedia.viewmodel.PostsAdapter
+import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
 class ImageFragment: Fragment (){
     override fun onCreateView(
@@ -26,29 +28,12 @@ class ImageFragment: Fragment (){
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentImageBinding.inflate(layoutInflater)
-        val viewModel: PostViewModel by activityViewModels()
-
-        val adapter = PostsAdapter(object : OnIteractionLister {
-
-            override fun like(post: Post) {
+        val dependencyContainer = DependencyContainer.getInstance()
+        val viewModel: PostViewModel by activityViewModels(
+            factoryProducer = {
+                ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
             }
-
-
-            override fun remove(post: Post) {
-            }
-
-            override fun edit(post: Post) {
-            }
-
-
-            override fun openPost(post: Post) {
-            }
-
-            override fun openImage(post: Post) {
-            }
-        })
-
-
+        )
 
         //Получаем айди поста для заполнения данных
         setFragmentResultListener("requestIdForImageFragment") { key, bundle ->

@@ -32,12 +32,18 @@ import ru.netologia.nmedia.activity.NewPostFragment.Companion.text
 import ru.netologia.nmedia.databinding.ActivityAppBinding
 import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.viewmodel.AuthViewModel
+import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
 
 class AppActivity : AppCompatActivity() {
+    private val dependencyContainer =
+        DependencyContainer.getInstance() //Внедрение контейнера зависимостей
+    private val viewModel by viewModels<AuthViewModel>(
+        factoryProducer = {
+            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
+        }//Передаем контейнер зависимостей во вьюмодел
+    )
 
-private val viewModel by viewModels<AuthViewModel>()
-private val dependencyContainer = DependencyContainer.getInstance() //Внедрение контейнера зависимостей
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,6 +105,7 @@ private val dependencyContainer = DependencyContainer.getInstance() //Внедр
 //                        AppAuth.getInstance().setAuth(5, "x-token") //Временная заглушка
                         true
                     }
+
                     R.id.signup -> {
                         dependencyContainer.appAuth.setAuth(5, "x-token")
                         true
