@@ -1,6 +1,5 @@
 package ru.netologia.nmedia.auth
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.work.Constraints
 import androidx.work.Data
@@ -8,27 +7,22 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import ru.netologia.nmedia.api.PostsApi
-import ru.netologia.nmedia.dto.PushToken
+//import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.work.SendPushTokenWorker
-import java.lang.IllegalStateException
 
-class AppAuth private constructor(private val context: Context) { //делаем синглтон с реализацией в компанион обжекте
+class AppAuth(context: Context) { //делаем синглтон с реализацией в компанион обжекте
 
+    private val contextForWorker = context
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
     private val _authState = MutableStateFlow<AuthState>(
         AuthState(
-            prefs.getLong(KEY_ID, 0L),
-            prefs.getString(KEY_TOKEN, null)
+            prefs.getLong("id", 0L),
+            prefs.getString("token", null)
         )
     )
 
@@ -38,8 +32,10 @@ class AppAuth private constructor(private val context: Context) { //делаем
     fun setAuth(id: Long, token: String) {
         _authState.value = AuthState(id, token)
         with(prefs.edit()) {//запись в префс айди пользователя и токена для авторизации
-            putLong(KEY_ID, id)
-            putString(KEY_TOKEN, token)
+//            putLong(KEY_ID, id)
+//            putString(KEY_TOKEN, token)
+            putLong("id", id)
+            putString("token", token)
             commit()
         }
         sendPushToken()
@@ -62,8 +58,8 @@ class AppAuth private constructor(private val context: Context) { //делаем
 //        CoroutineScope(Dispatchers.Default).launch {
 //            try {
 //                val pushToken = PushToken(token ?: FirebaseMessaging.getInstance().token.await())
-//                PostsApi.retrofitService.sendPushToken(pushToken)
-//            } catch (e: Exception){
+//                DependencyContainer.getInstance().apiService.sendPushToken(pushToken) //берем из контейнера зависимостей
+//            } catch (e: Exception) {
 //                e.printStackTrace()
 //            }
 //        }
@@ -82,7 +78,8 @@ class AppAuth private constructor(private val context: Context) { //делаем
             )
             .build()
 
-        WorkManager.getInstance(context)
+
+        WorkManager.getInstance(contextForWorker)
             .enqueueUniqueWork(
                 SendPushTokenWorker.NAME,
                 ExistingWorkPolicy.REPLACE,
@@ -90,24 +87,25 @@ class AppAuth private constructor(private val context: Context) { //делаем
             )
     }
 
-    companion object {
-        private const val KEY_ID = "id"
-        private const val KEY_TOKEN = "token"
-
-        @SuppressLint("StaticFieldLeak")
-        @Volatile
-        private var instance: AppAuth? = null
-
-        fun getInstance() = synchronized(this) {
-            instance
-                ?: throw IllegalStateException("getInstance should be called only after initAuth")
-        }
-
-        fun initAuth(context: Context) = instance
-            ?: synchronized(this) {//классический вариант даблчеклокинг когда синглтон учитывает многопоточность
-                instance ?: AppAuth(context).also { instance = it }
-            }
-    }
+    // Не нужен так как есть внедрение зависимостей
+//    companion object {
+//        private const val KEY_ID = "id"
+//        private const val KEY_TOKEN = "token"
+//
+//        @SuppressLint("StaticFieldLeak")
+//        @Volatile
+//        private var instance: AppAuth? = null
+//
+//        fun getInstance() = synchronized(this) {
+//            instance
+//                ?: throw IllegalStateException("getInstance should be called only after initAuth")
+//        }
+//
+//        fun initAuth(context: Context) = instance
+//            ?: synchronized(this) {//классический вариант даблчеклокинг когда синглтон учитывает многопоточность
+//                instance ?: AppAuth(context).also { instance = it }
+//            }
+//    }
 
     data class AuthState(val id: Long = 0L, val token: String? = null)
 }

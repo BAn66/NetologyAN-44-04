@@ -5,7 +5,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
-import ru.netologia.nmedia.api.PostsApi
+import ru.netologia.nmedia.di.DependencyContainer
+//import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.dto.PushToken
 
 class SendPushTokenWorker(
@@ -22,7 +23,7 @@ class SendPushTokenWorker(
             val token = inputData.getString(TOKEN_KEY)
 
             val pushToken = PushToken(token ?: FirebaseMessaging.getInstance().token.await())
-            PostsApi.retrofitService.sendPushToken(pushToken)
+           DependencyContainer.getInstance().apiService.sendPushToken(pushToken) //берем из контейнера зависимостей
             Result.success()
         } catch (e: Exception){
             e.printStackTrace()

@@ -18,6 +18,7 @@ import com.google.gson.Gson
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.AppActivity
 import ru.netologia.nmedia.auth.AppAuth
+import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.service.FCMService.Actions.*
 import kotlin.random.Random
 
@@ -35,7 +36,8 @@ class FCMService : FirebaseMessagingService() {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
-        AppAuth.getInstance().sendPushToken()
+//        AppAuth.getInstance().sendPushToken()
+        DependencyContainer.getInstance().appAuth.sendPushToken()
     }
 
     override fun onMessageReceived(message: RemoteMessage) { //работа с сообщениями от сервера, типа новый пост появился, или Вас лайкнули
