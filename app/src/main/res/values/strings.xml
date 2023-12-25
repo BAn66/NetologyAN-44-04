@@ -19,6 +19,7 @@
     <string name="notification_user_like"> User %1$s liked %2$s`s post</string>
     <string name="notification_user_new_post_tittle">%1$s published new post:</string>
     <string name="notification_user_new_post"> %1$s </string>
+    <string name="notification_push_content"> %1$s - was in message </string>
     <string name="internet_error">Error of network</string>
     <string name="retry">RETRY</string>
     <string name="load">LOAD</string>

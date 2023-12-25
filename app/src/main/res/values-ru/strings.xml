@@ -20,6 +20,7 @@
     <string name="notification_user_like">Пользователь %1$s лайкнул пост %2$s</string>
     <string name="notification_user_new_post_tittle">%1$s опубликовал новый пост:</string>
     <string name="notification_user_new_post"> %1$s </string>
+    <string name="notification_push_content"> %1$s - было в сообщении </string>
     <string name="internet_error">Ошибка сети</string>
     <string name="retry">ПОВТОРИТЬ</string>
     <string name="load">LOAD</string>
