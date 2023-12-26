@@ -25,6 +25,7 @@ import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 
 import kotlinx.coroutines.launch
@@ -42,10 +43,16 @@ import javax.inject.Inject
 @AndroidEntryPoint //Работа с зависимостями через HILT
 class AppActivity : AppCompatActivity() {
 
-@Inject//Внедряем зависимость для авторизации
-lateinit var appAuth: AppAuth
+    @Inject//Внедряем зависимость для авторизации
+    lateinit var appAuth: AppAuth
 
-//    private val dependencyContainer = DependencyContainer.getInstance() //Внедрение контейнера зависимостей// Не нужен если используются HILT
+    @Inject//Внедряем зависимость для д/з 2
+    lateinit var firebaseMessaging: FirebaseMessaging
+
+    @Inject//Внедряем зависимость для д/з 2
+    lateinit var googleApiAvailability: GoogleApiAvailability
+
+    //    private val dependencyContainer = DependencyContainer.getInstance() //Внедрение контейнера зависимостей// Не нужен если используются HILT
     private val viewModel by viewModels<AuthViewModel>(
 //        factoryProducer = {
 //            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
@@ -89,6 +96,25 @@ lateinit var appAuth: AppAuth
                 }
             }
         }
+
+
+        //ANDAD_01 Д/з №2
+//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+        firebaseMessaging.token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                println("some stuff happened: ${task.exception}")
+                return@addOnCompleteListener
+            }
+
+            val token = task.result
+            println(token)
+        }
+
+        checkGoogleApiAvailability()
+
+        requestNotificationsPermission()
+
+
         addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_main, menu)
@@ -170,7 +196,7 @@ lateinit var appAuth: AppAuth
     //проверка на установленную google Api, на Huawei нет такого апи например
     private fun checkGoogleApiAvailability() {
         println("запрос апи")
-        with(GoogleApiAvailability.getInstance()) {
+        with(googleApiAvailability) {
             val code = isGooglePlayServicesAvailable(this@AppActivity)
             if (code == ConnectionResult.SUCCESS) {
                 return@with
