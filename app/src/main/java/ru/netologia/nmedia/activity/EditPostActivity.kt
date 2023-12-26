@@ -4,9 +4,10 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netologia.nmedia.databinding.ActivityEditPostBinding
 import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
-
+@AndroidEntryPoint
 class EditPostActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

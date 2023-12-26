@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netologia.nmedia.BuildConfig
 import ru.netologia.nmedia.auth.AppAuth
-import ru.netologia.nmedia.di.DependencyContainer
+//import ru.netologia.nmedia.di.DependencyContainer
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -20,9 +20,8 @@ class ApiModule {
     companion object {
         private const val BASE_URL = "${BuildConfig.BASE_URL}/api/slow/"
     }
-
-    @Provides
     @Singleton
+    @Provides
     fun provideLogging(): HttpLoggingInterceptor = HttpLoggingInterceptor()//Перехватчик для логгера
         .apply {
             if (BuildConfig.DEBUG) {
@@ -31,14 +30,15 @@ class ApiModule {
         }
 
     //клиент OkHttp
-    @Provides
     @Singleton
+    @Provides
     fun provideOkHttp(
         logging: HttpLoggingInterceptor,
         appAuth: AppAuth
     ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(logging)
         .addInterceptor { chain ->
-            appAuth.authState.value.token?.let { token ->
+            appAuth.authStateFlow.value.token?.let { token ->
                 val newRequest = chain.request().newBuilder()
                     .addHeader("Authorization", token)
                     .build()
@@ -46,13 +46,14 @@ class ApiModule {
             }
             chain.proceed(chain.request())
         }
-        .addInterceptor(logging)
         .build()
 
     // и ретрофит
     @Singleton
     @Provides
-    fun provideRetrofit(clientOkHttp: OkHttpClient): Retrofit = Retrofit.Builder()
+    fun provideRetrofit(
+        clientOkHttp: OkHttpClient
+    ): Retrofit = Retrofit.Builder()
         .addConverterFactory(GsonConverterFactory.create())
         .client(clientOkHttp)
         .baseUrl(BASE_URL)
@@ -62,6 +63,6 @@ class ApiModule {
     @Provides
     fun provideApiService(
         retrofit: Retrofit,
-    ): PostsApiService = retrofit.create()
+    ): ApiService = retrofit.create<ApiService>()
 
 }

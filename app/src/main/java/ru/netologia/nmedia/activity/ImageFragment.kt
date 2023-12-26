@@ -12,15 +12,17 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentImageBinding
-import ru.netologia.nmedia.di.DependencyContainer
+//import ru.netologia.nmedia.di.DependencyContainer
 //import ru.netologia.nmedia.dto.Post
 //import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 //import ru.netologia.nmedia.viewmodel.PostsAdapter
-import ru.netologia.nmedia.viewmodel.ViewModelFactory
+//import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
+@AndroidEntryPoint
 class ImageFragment: Fragment (){
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -28,11 +30,11 @@ class ImageFragment: Fragment (){
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentImageBinding.inflate(layoutInflater)
-        val dependencyContainer = DependencyContainer.getInstance()
+//        val dependencyContainer = DependencyContainer.getInstance()
         val viewModel: PostViewModel by activityViewModels(
-            factoryProducer = {
-                ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
-            }
+//            factoryProducer = {
+//                ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
+//            }
         )
 
         //Получаем айди поста для заполнения данных

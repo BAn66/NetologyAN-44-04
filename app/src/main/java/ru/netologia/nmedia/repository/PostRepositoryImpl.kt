@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Response
-import ru.netologia.nmedia.api.PostsApiService
+import ru.netologia.nmedia.api.ApiService
 //import retrofit2.http.Multipart
 //import okhttp3.Dispatcher
 import ru.netologia.nmedia.dao.PostDao
@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
-    private val apiService: PostsApiService //Заменяем этим аписервисом, все вызовы PostsApi.retrofitService
+    private val apiService: ApiService //Заменяем этим аписервисом, все вызовы PostsApi.retrofitService
 ) : PostRepository {
     override val data = dao.getAll()
         .map(List<PostEntity>::toDto) //Берем текущую локальную БД

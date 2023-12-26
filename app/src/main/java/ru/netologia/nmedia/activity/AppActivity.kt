@@ -26,19 +26,24 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.NewPostFragment.Companion.text
+import ru.netologia.nmedia.auth.AppAuth
 //import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.ActivityAppBinding
 //import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.viewmodel.AuthViewModel
+import javax.inject.Inject
+
 //import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
-@AndroidEntryPoint
+@AndroidEntryPoint //Работа с зависимостями через HILT
 class AppActivity : AppCompatActivity() {
 
-
+@Inject//Внедряем зависимость для авторизации
+lateinit var appAuth: AppAuth
 
 //    private val dependencyContainer = DependencyContainer.getInstance() //Внедрение контейнера зависимостей// Не нужен если используются HILT
     private val viewModel by viewModels<AuthViewModel>(
@@ -110,12 +115,14 @@ class AppActivity : AppCompatActivity() {
                     }
 
                     R.id.signup -> {
-//                        dependencyContainer.appAuth.setAuth(5, "x-token")
+//                        dependencyContainer.appAuth.setAuth(5, "x-token")//до HILT
+                        appAuth.setAuth(5, "x-token")
                         true
                     }
 
                     R.id.signout -> {
-                        dependencyContainer.appAuth.removeAuth()
+//                        dependencyContainer.appAuth.removeAuth() //до HILT
+                        appAuth.removeAuth()
                         true
                     }
 

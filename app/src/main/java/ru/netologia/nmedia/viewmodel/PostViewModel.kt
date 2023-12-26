@@ -1,8 +1,6 @@
 package ru.netologia.nmedia.viewmodel
 
-import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,6 +8,7 @@ import androidx.lifecycle.asLiveData
 //import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -17,13 +16,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.auth.AppAuth
-import ru.netologia.nmedia.db.AppDb
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.model.FeedModel
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.model.PhotoModel
 import ru.netologia.nmedia.repository.PostRepository
-import ru.netologia.nmedia.repository.PostRepositoryImpl
 import ru.netologia.nmedia.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
@@ -46,10 +43,10 @@ private val empty = Post(
 
 //class PostViewModel(application: Application, myRepository: PostRepository) :
 //class PostViewModel(application: Application) : AndroidViewModel(application) { // до внедрения зависимостей
+@HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
     appAuth: AppAuth
-
 ):ViewModel(){
 
     // Работа с сетевыми запросами
@@ -65,7 +62,7 @@ class PostViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
 //    val data: LiveData<FeedModel> = AppAuth.getInstance()//Добавляем флоу для Auth  до внедрения зависимостей2
     val data: LiveData<FeedModel> = appAuth//Добавляем флоу для Auth
-        .authState
+        .authStateFlow
         .flatMapLatest {auth ->
             repository.data
                 .map {posts ->
