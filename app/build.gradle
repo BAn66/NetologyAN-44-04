@@ -1,11 +1,14 @@
+//plugins {
+//    id 'com.android.application'
+//    id 'org.jetbrains.kotlin.android'
+//    id 'org.jetbrains.kotlin.kapt' //для room
+//    id("com.google.gms.google-services")
+//}
 
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.kapt' //для room
-    id("com.google.gms.google-services")
-}
-
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.gms.google-services'
 apply plugin: 'dagger.hilt.android.plugin'
 
 android {
@@ -106,6 +109,7 @@ dependencies {
 
     implementation "com.google.dagger:hilt-android:$hilt_version"// Для внедрения зависимостей
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
+//    annotationProcessor "com.google.dagger:dagger-compiler:$hilt_version"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
