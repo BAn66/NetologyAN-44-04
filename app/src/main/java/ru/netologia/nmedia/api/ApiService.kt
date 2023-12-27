@@ -17,6 +17,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 //import ru.netologia.nmedia.BuildConfig
 //import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.dto.Post
@@ -59,8 +60,17 @@ interface ApiService {
     @GET("posts")
     suspend fun getAll(): Response<List<Post>>
 
+    @GET("posts/latest") //Загружает последний пост
+    suspend fun getLatest(@Path("id") id: Long): Response<List<Post>>
+
     @GET("posts/{id}/newer")
     suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
+
+    @GET("posts/{id}/before") //Загружает посты до
+    suspend fun getBefore(@Path("id") id: Long, @Query("count") count: Int): Response<List<Post>>
+
+    @GET("posts/{id}/after") //Загружает посты после
+    suspend fun getAfter(@Path("id") id: Long, @Query("count") count: Int): Response<List<Post>>
 
     @GET("posts/{id}")
     suspend fun getById(@Path("id") id: Long): Response<Post>
