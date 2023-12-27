@@ -4,7 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
+//import android.os.Handler
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -12,30 +12,53 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
-import androidx.fragment.app.Fragment
+//import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
+//import androidx.navigation.NavController
+//import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
+//import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.messaging.FirebaseMessaging
+import dagger.hilt.android.AndroidEntryPoint
+
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.NewPostFragment.Companion.text
 import ru.netologia.nmedia.auth.AppAuth
+//import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.ActivityAppBinding
+//import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.viewmodel.AuthViewModel
+import javax.inject.Inject
 
+//import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
+@AndroidEntryPoint //Работа с зависимостями через HILT
 class AppActivity : AppCompatActivity() {
 
-    val viewModel by viewModels<AuthViewModel>()
+    @Inject//Внедряем зависимость для авторизации
+    lateinit var appAuth: AppAuth
+
+    @Inject//Внедряем зависимость для д/з 2
+    lateinit var firebaseMessaging: FirebaseMessaging
+
+    @Inject//Внедряем зависимость для д/з 2
+    lateinit var googleApiAvailability: GoogleApiAvailability
+
+    //    private val dependencyContainer = DependencyContainer.getInstance() //Внедрение контейнера зависимостей// Не нужен если используются HILT
+    private val viewModel by viewModels<AuthViewModel>(
+//        factoryProducer = {
+//            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
+//        }//Передаем контейнер зависимостей во вьюмодел //Не нужен если используются HILT
+    )
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +96,25 @@ class AppActivity : AppCompatActivity() {
                 }
             }
         }
+
+
+        //ANDAD_01 Д/з №2
+//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+        firebaseMessaging.token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                println("some stuff happened: ${task.exception}")
+                return@addOnCompleteListener
+            }
+
+            val token = task.result
+            println(token)
+        }
+
+        checkGoogleApiAvailability()
+
+        requestNotificationsPermission()
+
+
         addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_main, menu)
@@ -97,13 +139,16 @@ class AppActivity : AppCompatActivity() {
 //                        AppAuth.getInstance().setAuth(5, "x-token") //Временная заглушка
                         true
                     }
+
                     R.id.signup -> {
-                        AppAuth.getInstance().setAuth(5, "x-token")
+//                        dependencyContainer.appAuth.setAuth(5, "x-token")//до HILT
+                        appAuth.setAuth(5, "x-token")
                         true
                     }
 
                     R.id.signout -> {
-                        AppAuth.getInstance().removeAuth()
+//                        dependencyContainer.appAuth.removeAuth() //до HILT
+                        appAuth.removeAuth()
                         true
                     }
 
@@ -151,7 +196,7 @@ class AppActivity : AppCompatActivity() {
     //проверка на установленную google Api, на Huawei нет такого апи например
     private fun checkGoogleApiAvailability() {
         println("запрос апи")
-        with(GoogleApiAvailability.getInstance()) {
+        with(googleApiAvailability) {
             val code = isGooglePlayServicesAvailable(this@AppActivity)
             if (code == ConnectionResult.SUCCESS) {
                 return@with

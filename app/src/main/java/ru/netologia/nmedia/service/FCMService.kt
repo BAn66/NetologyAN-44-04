@@ -15,15 +15,23 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.AppActivity
 import ru.netologia.nmedia.auth.AppAuth
-import ru.netologia.nmedia.di.DependencyContainer
-import ru.netologia.nmedia.service.FCMService.Actions.*
+import javax.inject.Inject
+//import ru.netologia.nmedia.auth.AppAuth
+//import ru.netologia.nmedia.di.DependencyContainer
+//import ru.netologia.nmedia.service.FCMService.Actions.*
 import kotlin.random.Random
 
+@AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
     private val channelId = "server"
+//    private val appAuth = DependencyContainer.getInstance().appAuth
+    @Inject
+    lateinit var appAuth: AppAuth
+
     override fun onCreate() { //создаем канал по которому будет идти сообщение
         super.onCreate()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -37,7 +45,8 @@ class FCMService : FirebaseMessagingService() {
             manager.createNotificationChannel(channel)
         }
 //        AppAuth.getInstance().sendPushToken()
-        DependencyContainer.getInstance().appAuth.sendPushToken()
+//        DependencyContainer.getInstance().appAuth.sendPushToken()
+        appAuth.sendPushToken()
     }
 
     override fun onMessageReceived(message: RemoteMessage) { //работа с сообщениями от сервера, типа новый пост появился, или Вас лайкнули
@@ -57,19 +66,19 @@ class FCMService : FirebaseMessagingService() {
 
 //Для лекции про пуши 44-04-14 Лекция про продвинутые пуши
         val recipientId = Gson().fromJson(message.data["content"], PushMessage::class.java).recipientId
-        val id = AppAuth.getInstance().authState.value.id
+        val id = appAuth.authStateFlow.value.id
         when {
             recipientId == null-> handPushMessage(Gson().fromJson(message.data["content"], PushMessage::class.java))
             recipientId == id ->  handPushMessage(Gson().fromJson(message.data["content"], PushMessage::class.java))
 //            recipientId == 0L -> AppAuth.getInstance().sendPushToken()
 //            recipientId != 0L -> AppAuth.getInstance().sendPushToken()
-            else -> AppAuth.getInstance().sendPushToken()
+            else -> appAuth.sendPushToken()
         }
     }
 
     override fun onNewToken(token: String){ //для пушей, если появился новый токен2
         //        super.onNewToken(token)
-        AppAuth.getInstance().sendPushToken()
+        appAuth.sendPushToken()
         println("Это токен:")
         println(token)
     }

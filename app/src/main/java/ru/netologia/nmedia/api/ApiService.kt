@@ -55,7 +55,7 @@ import ru.netology.nmedia.dto.Media
 //    .addConverterFactory(GsonConverterFactory.create())
 //    .build()
 
-interface PostsApiService {
+interface ApiService {
     @GET("posts")
     suspend fun getAll(): Response<List<Post>>
 
