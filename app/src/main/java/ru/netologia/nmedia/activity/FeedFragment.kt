@@ -1,9 +1,11 @@
 package ru.netologia.nmedia.activity
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.viewModels
 //import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -11,8 +13,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import androidx.paging.map
@@ -21,15 +25,19 @@ import androidx.recyclerview.widget.RecyclerView.SmoothScroller
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
+import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
 //import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.dto.Post
 //import ru.netologia.nmedia.model.FeedModel
 import ru.netologia.nmedia.model.FeedModelState
+import ru.netologia.nmedia.viewmodel.AuthViewModel
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
+import javax.inject.Inject
 
 //import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
@@ -39,11 +47,16 @@ import ru.netologia.nmedia.viewmodel.PostsAdapter
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
     //    private val dependencyContainer = DependencyContainer.getInstance()
+    @Inject//Внедряем зависимость для авторизации
+    lateinit var appAuth: AppAuth
+
     private val viewModel: PostViewModel by activityViewModels(
 //        factoryProducer = {
 //            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
 //        }
     )
+
+    private val authViewModel by viewModels<AuthViewModel>()
 
     fun toastErrMess(state: FeedModelState) {
         if (state.error) {
@@ -156,7 +169,7 @@ class FeedFragment : Fragment() {
 //            binding.empty.isVisible = state.empty
 //
 //        }
-
+       /**вот это не работает ошибку выкидывает про потоки */
 //        viewModel.newerCount.observe(viewLifecycleOwner) { //До Paging
 //            binding.showNew.isVisible = it > 0 //Условия видимости можно сменить на it > 0, в таком случае плашка не будет отображаться когда новых постов нет.
 //            println("$it posts add")
@@ -179,6 +192,7 @@ class FeedFragment : Fragment() {
 
         lifecycleScope.launchWhenCreated {// Обновляшка по свайпу //c Paging
             adapter.loadStateFlow.collectLatest {
+                binding.swiperefresh.isRefreshing =
                 it.refresh is LoadState.Loading
                         || it.append is LoadState.Loading
                         || it.prepend is LoadState.Loading
@@ -192,6 +206,21 @@ class FeedFragment : Fragment() {
         binding.retryButton.setOnClickListener {
             viewModel.refreshPosts()
         }
+
+        /** Обновление при входе выходе */
+
+//           authViewModel.viewModelScope.launch {
+//              adapter.refresh()
+//               Log.d("REFRESH", "я обновил")
+//           }
+
+        lifecycleScope.launchWhenCreated {
+            appAuth.authStateFlow.collectLatest {
+                Log.d("REFRESH", "я обновил")
+                adapter.refresh()
+            }
+        }
+
 
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)
         viewModel.edited.observe(viewLifecycleOwner) { it ->// Начало редактирования

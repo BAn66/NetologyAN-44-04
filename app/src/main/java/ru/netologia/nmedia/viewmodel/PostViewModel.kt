@@ -103,9 +103,10 @@ class PostViewModel @Inject constructor(
 //            .asLiveData(Dispatchers.Default)
 //    }
 
-        val newerCount = data.flatMapLatest {
-            repository.getNewer(it.toList().firstOrNull()?.id ?: 0L)
-        }.flowOn(Dispatchers.Default)
+//        val newerCount = data.flatMapLatest {
+//            repository.getNewer(it.toList().firstOrNull()?.id ?: 0L)
+//        }.asLiveData(Dispatchers.Default)
+
 
 
     private val _dataState = MutableLiveData(FeedModelState()) //Состояние
