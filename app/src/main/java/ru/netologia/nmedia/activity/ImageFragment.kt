@@ -10,11 +10,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 //import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.single
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentImageBinding
+import ru.netologia.nmedia.util.AndroidUtils.toList
 //import ru.netologia.nmedia.di.DependencyContainer
 //import ru.netologia.nmedia.dto.Post
 //import ru.netologia.nmedia.viewmodel.OnIteractionLister
@@ -41,12 +44,13 @@ class ImageFragment: Fragment (){
         setFragmentResultListener("requestIdForImageFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val result = bundle.getLong("id")
-            viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
-                // Работаем с скролвью
-                val listOnePost = feedModelState.posts.filter { it.id == result }
-                if (listOnePost[0].attachment != null) {
-                    val urlImages = "http://10.0.2.2:9999/media/${listOnePost[0].attachment!!.url}"
-                    binding.imageFromPost.contentDescription = listOnePost[0].attachment!!.url
+
+            lifecycleScope.launchWhenCreated {
+                val listOnePost =
+                    viewModel.data.single().toList().filter { it -> it.id == result }[0].copy()
+                if (listOnePost.attachment != null) {
+                    val urlImages = "http://10.0.2.2:9999/media/${listOnePost.attachment!!.url}"
+                    binding.imageFromPost.contentDescription = listOnePost.attachment!!.url
 
                     Glide.with(binding.imageFromPost)
                         .load(urlImages)
@@ -55,11 +59,31 @@ class ImageFragment: Fragment (){
                         .timeout(10_000)
                         .into(binding.imageFromPost)
                 }
-                binding.btnLike.text = eraseZero(listOnePost[0].likes.toLong())
+                binding.btnLike.text = eraseZero(listOnePost.likes.toLong())
                 binding.btnShare.text = "5"
                 binding.btnViews.text = "5"
-
             }
+
+            //До Paging
+//            viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
+//                // Работаем с скролвью
+//                val listOnePost = feedModelState.posts.filter { it.id == result }
+//                if (listOnePost[0].attachment != null) {
+//                    val urlImages = "http://10.0.2.2:9999/media/${listOnePost[0].attachment!!.url}"
+//                    binding.imageFromPost.contentDescription = listOnePost[0].attachment!!.url
+//
+//                    Glide.with(binding.imageFromPost)
+//                        .load(urlImages)
+//                        .placeholder(R.drawable.ic_loading_100dp)
+//                        .error(R.drawable.ic_error_100dp)
+//                        .timeout(10_000)
+//                        .into(binding.imageFromPost)
+//                }
+//                binding.btnLike.text = eraseZero(listOnePost[0].likes.toLong())
+//                binding.btnShare.text = "5"
+//                binding.btnViews.text = "5"
+//
+//            }
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {

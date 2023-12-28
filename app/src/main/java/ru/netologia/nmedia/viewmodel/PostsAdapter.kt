@@ -2,13 +2,15 @@ package ru.netologia.nmedia.viewmodel
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.ListAdapter
 import ru.netologia.nmedia.databinding.CardPostBinding
 import ru.netologia.nmedia.dto.Post
 
 class PostsAdapter(
     private val onIteractionLister: OnIteractionLister
-) : ListAdapter<Post, PostViewHolder>(PostDiffCallback()) {
+) : PagingDataAdapter<Post, PostViewHolder>(PostDiffCallback()) {
+//)  :ListAdapter<Post, PostViewHolder>(PostDiffCallback()) { //до paging
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val binding =
@@ -19,7 +21,8 @@ class PostsAdapter(
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
 //        val post = list[position]
-        val post = getItem(position)
+//        val post = getItem(position) //до paging
+        val post = getItem(position) ?: return
         holder.bind(post)
     }
 

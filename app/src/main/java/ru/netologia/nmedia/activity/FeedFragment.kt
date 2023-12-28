@@ -11,11 +11,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
+import androidx.paging.map
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView.SmoothScroller
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
 //import ru.netologia.nmedia.di.DependencyContainer
@@ -25,6 +30,7 @@ import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
+
 //import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
 
@@ -32,7 +38,7 @@ import ru.netologia.nmedia.viewmodel.PostsAdapter
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
-//    private val dependencyContainer = DependencyContainer.getInstance()
+    //    private val dependencyContainer = DependencyContainer.getInstance()
     private val viewModel: PostViewModel by activityViewModels(
 //        factoryProducer = {
 //            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
@@ -121,36 +127,66 @@ class FeedFragment : Fragment() {
             toastErrMess(state)
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            //         Работаем с скролвью
-            val newPost =
-                state.posts.size > adapter.currentList.size && adapter.itemCount > 0//флаг если добавился новый пост, и был хотябы один пост
-            // Адаптер для списка постов ROOM
-            adapter.submitList(state.posts)
-            {
-                if (newPost) {
-                    //прокрутка до начала при добавлении поста/ иначе будет мотать наверх при любом изменении в ScrollView
-                    val smoothScroller: SmoothScroller = object : LinearSmoothScroller(context) {
-                        override fun getVerticalSnapPreference(): Int {
-                            return SNAP_TO_START
-                        }
-                    }
-                    smoothScroller.setTargetPosition(0)
-                    binding.list.layoutManager!!.startSmoothScroll(smoothScroller)
-                    //прокрутка до начала при добавлении поста и при новом запуске
-                }
+        lifecycleScope.launchWhenCreated { //После paging
+            viewModel.data.collectLatest {
+                adapter.submitData(it)
             }
-            binding.empty.isVisible = state.empty
-
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) {
-            binding.showNew.isVisible = it > 0 //Условия видимости можно сменить на it > 0, в таком случае плашка не будет отображаться когда новых постов нет.
-            println("$it posts add")
+        //До Paging
+//        viewModel.data.observe(viewLifecycleOwner) { state -> // До paging
+//            //         Работаем с скролвью
+//            val newPost =
+//                state.posts.size > adapter.currentList.size && adapter.itemCount > 0//флаг если добавился новый пост, и был хотябы один пост
+//            // Адаптер для списка постов ROOM
+//            adapter.submitList(state.posts)
+//            {
+//                if (newPost) {
+//                    //прокрутка до начала при добавлении поста/ иначе будет мотать наверх при любом изменении в ScrollView
+//                    val smoothScroller: SmoothScroller = object : LinearSmoothScroller(context) {
+//                        override fun getVerticalSnapPreference(): Int {
+//                            return SNAP_TO_START
+//                        }
+//                    }
+//                    smoothScroller.setTargetPosition(0)
+//                    binding.list.layoutManager!!.startSmoothScroll(smoothScroller)
+//                    //прокрутка до начала при добавлении поста и при новом запуске
+//                }
+//            }
+//            binding.empty.isVisible = state.empty
+//
+//        }
+
+//        viewModel.newerCount.observe(viewLifecycleOwner) { //До Paging
+//            binding.showNew.isVisible = it > 0 //Условия видимости можно сменить на it > 0, в таком случае плашка не будет отображаться когда новых постов нет.
+//            println("$it posts add")
+//        }
+
+//                viewModel.newerCount.observe(viewLifecycleOwner) { //До Paging
+//            binding.showNew.isVisible = it > 0 //Условия видимости можно сменить на it > 0, в таком случае плашка не будет отображаться когда новых постов нет.
+//            println("$it posts add")
+//        }
+//
+//        lifecycleScope.launchWhenCreated {
+//            val i = viewModel.newerCount.asLiveData()
+//            binding.showNew.isVisible = i > 0
+//            println("$viewModel.newerCount posts add")
+//        }
+
+//        binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу //до Paging
+//            viewModel.refreshPosts()
+//        }
+
+        lifecycleScope.launchWhenCreated {// Обновляшка по свайпу //c Paging
+            adapter.loadStateFlow.collectLatest {
+                it.refresh is LoadState.Loading
+                        || it.append is LoadState.Loading
+                        || it.prepend is LoadState.Loading
+            }
         }
 
-        binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу
-            viewModel.refreshPosts()
+        binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу //c Paging
+            adapter.refresh()
         }
 
         binding.retryButton.setOnClickListener {
@@ -172,7 +208,7 @@ class FeedFragment : Fragment() {
         //TODO Добавить кнопку загрузки на сервер не сохраненных постов
 
 
-        binding.showNew.setOnClickListener{
+        binding.showNew.setOnClickListener {
             binding.showNew.isVisible = viewModel.haveNew
             viewModel.refreshPosts()
             //todo сделать так чтобы еще и незагруженные посты пользователя отправлялись на сервер

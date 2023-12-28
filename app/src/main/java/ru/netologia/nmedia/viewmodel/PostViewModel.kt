@@ -8,12 +8,17 @@ import androidx.lifecycle.asLiveData
 //import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.switchMap
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.dto.Post
@@ -21,6 +26,7 @@ import ru.netologia.nmedia.model.FeedModel
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.model.PhotoModel
 import ru.netologia.nmedia.repository.PostRepository
+import ru.netologia.nmedia.util.AndroidUtils.toList
 import ru.netologia.nmedia.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
@@ -61,21 +67,24 @@ class PostViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
 //    val data: LiveData<FeedModel> = AppAuth.getInstance()//Добавляем флоу для Auth  до внедрения зависимостей2
-    val data: LiveData<FeedModel> = appAuth//Добавляем флоу для Auth
+//    val data: LiveData<FeedModel> = appAuth//Добавляем флоу для Auth //До paging
+    val data: Flow<PagingData<Post>> = appAuth
         .authStateFlow
         .flatMapLatest {auth ->
             repository.data
                 .map {posts ->
-                    FeedModel(
-                        posts.map{it.copy(ownedByMe = auth.id == it.authorId)},
-                        posts.isEmpty()
-                    )
+//                    FeedModel( //До paging
+                        posts.map{it.copy(ownedByMe = auth.id == it.authorId)}
+//                    ,
+//                        posts.isEmpty()
+//                    )
                 }
                 .catch {
                     errorMessage = repository.getErrMess()
                 }
         }
-        .asLiveData(Dispatchers.Default)
+//        .asLiveData(Dispatchers.Default) //До paging
+        .flowOn(Dispatchers.Default)
 
 //        repository.data //только для флоу c постами
 //        .map(::FeedModel)
@@ -89,11 +98,14 @@ class PostViewModel @Inject constructor(
     val photo: LiveData<PhotoModel?>
         get() = _photo
 
-    val newerCount = data.switchMap {
-        repository.getNewer(it.posts.firstOrNull()?.id ?: 0L)
-            .asLiveData(Dispatchers.Default)
+//    val newerCount = data.switchMap { //До Paging
+//        repository.getNewer(it.posts.firstOrNull()?.id ?: 0L)
+//            .asLiveData(Dispatchers.Default)
+//    }
 
-    }
+        val newerCount = data.flatMapLatest {
+            repository.getNewer(it.toList().firstOrNull()?.id ?: 0L)
+        }.flowOn(Dispatchers.Default)
 
 
     private val _dataState = MutableLiveData(FeedModelState()) //Состояние

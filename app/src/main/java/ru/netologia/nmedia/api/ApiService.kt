@@ -61,7 +61,7 @@ interface ApiService {
     suspend fun getAll(): Response<List<Post>>
 
     @GET("posts/latest") //Загружает последний пост
-    suspend fun getLatest(@Path("id") id: Long): Response<List<Post>>
+    suspend fun getLatest(@Query("count") count: Int): Response<List<Post>>
 
     @GET("posts/{id}/newer")
     suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
