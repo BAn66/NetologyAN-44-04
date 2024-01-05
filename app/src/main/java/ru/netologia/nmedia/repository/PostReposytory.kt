@@ -1,6 +1,8 @@
 package ru.netologia.nmedia.repository
 
 //import androidx.lifecycle.LiveData
+
+import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.dto.Token
@@ -9,7 +11,8 @@ import ru.netologia.nmedia.model.PhotoModel
 interface PostRepository {
     //Для рума/ретрофита с корутинами добавим свойство которое будет отвечать за предоставление данных в виде LiveData
 //    val data: LiveData<List<Post>> //без flow
-    val data: Flow<List<Post>>
+//    val data: Flow<List<Post>>// c Flow до Paging
+    val data: Flow<PagingData<Post>>
     fun getNewer(id: Long): Flow<Int>
     suspend fun haveNewer(): Boolean
     suspend fun getAll()
@@ -20,6 +23,7 @@ interface PostRepository {
     fun getErrMess(): Pair<Int, String>
     suspend fun saveWithAttachment(postCopy: Post, photoModel: PhotoModel)
     suspend fun requestToken(login: String, password: String): Token
+
 }
 
  //для ретрофита без всего

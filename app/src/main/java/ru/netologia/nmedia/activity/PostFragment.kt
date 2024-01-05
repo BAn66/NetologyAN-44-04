@@ -9,8 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentPostBinding
 //import ru.netologia.nmedia.di.DependencyContainer
@@ -86,10 +88,17 @@ class PostFragment: Fragment (){
         setFragmentResultListener("requestIdForPostFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val result = bundle.getLong("id")
-        viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
-            // Работаем с скролвью
-                adapter.submitList(feedModelState.posts.filter {it.id == result })
+
+            lifecycleScope.launchWhenCreated { //После paging
+                viewModel.data.collectLatest {
+                    adapter.submitData(it)
+                }
             }
+
+//        viewModel.data.observe(viewLifecycleOwner) { feedModelState ->
+//            // Работаем с скролвью
+//                adapter.submitList(feedModelState.posts.filter {it.id == result })
+//            }
         }
 
         viewModel.edited.observe(viewLifecycleOwner) { it ->// Начало редактирования

@@ -1,6 +1,8 @@
 package ru.netologia.nmedia.repository
 
 import androidx.lifecycle.asLiveData
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 //import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.dto.Post
 import java.io.IOException
@@ -29,14 +31,24 @@ import ru.netologia.nmedia.model.PhotoModel
 import ru.netology.nmedia.dto.Media
 import java.io.File
 import javax.inject.Inject
+import kotlin.contracts.contract
 
 
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService: ApiService //Заменяем этим аписервисом, все вызовы PostsApi.retrofitService
 ) : PostRepository {
-    override val data = dao.getAll()
-        .map(List<PostEntity>::toDto) //Берем текущую локальную БД
+//    override val data = dao.getAll().map(List<PostEntity>::toDto) //Берем текущую локальную БД //До Paging, без БД для упрощения демонстрации Paging
+
+    //плэйсхолдеры отключены для упрощения демонстрации Paging
+    override val data = Pager(
+        config = PagingConfig(pageSize = 10, enablePlaceholders = false),
+        pagingSourceFactory = {
+            PostPagingSource(apiService)
+        }
+    ).flow
+
+
     //        .flowOn(Dispatchers.Default) //вызывются не на главном потоке//но мы это сделаем в поствьюмодел
 
 
