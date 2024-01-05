@@ -12,7 +12,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Response
@@ -23,7 +22,6 @@ import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.dto.Attachment
 import ru.netologia.nmedia.dto.Token
 import ru.netologia.nmedia.entity.PostEntity
-import ru.netologia.nmedia.entity.toDto
 import ru.netologia.nmedia.entity.toEntity
 import ru.netologia.nmedia.enumeration.AttachmentType
 import ru.netologia.nmedia.error.*
@@ -31,7 +29,6 @@ import ru.netologia.nmedia.model.PhotoModel
 import ru.netology.nmedia.dto.Media
 import java.io.File
 import javax.inject.Inject
-import kotlin.contracts.contract
 
 
 class PostRepositoryImpl @Inject constructor(
@@ -112,7 +109,7 @@ class PostRepositoryImpl @Inject constructor(
         .catch { throw UnknownError } //Репозиторий может выбрасывать исключения, но их тогда нужно обрабатывать во вьюмодели, тоже в кэтче флоу
 //        .flowOn(Dispatchers.Default)
 
-    override suspend fun haveNewer(): Boolean {
+    override suspend fun switchNewOnShowed(): Boolean {
         dao.showedSwitch()
         return false
     }

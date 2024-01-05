@@ -14,7 +14,7 @@ interface PostRepository {
 //    val data: Flow<List<Post>>// c Flow до Paging
     val data: Flow<PagingData<Post>>
     fun getNewer(id: Long): Flow<Int>
-    suspend fun haveNewer(): Boolean
+    suspend fun switchNewOnShowed(): Boolean
     suspend fun getAll()
     suspend fun save(post: Post)
     suspend fun removeById(id: Long)

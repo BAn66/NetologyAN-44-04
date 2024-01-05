@@ -4,9 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 //import androidx.lifecycle.map
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.map
@@ -18,15 +16,12 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.switchMap
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.dto.Post
-import ru.netologia.nmedia.model.FeedModel
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.model.PhotoModel
 import ru.netologia.nmedia.repository.PostRepository
-import ru.netologia.nmedia.util.AndroidUtils.toList
 import ru.netologia.nmedia.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
@@ -60,7 +55,7 @@ class PostViewModel @Inject constructor(
 //    private val repository: PostRepository = // до внедрения зависимостей
 //        PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
     var haveNew: Boolean =
-        true //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
+    false //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
 
 
     //    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели //Без Flow
@@ -141,7 +136,7 @@ class PostViewModel @Inject constructor(
     fun refreshPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(refreshing = true)
-            haveNew = repository.haveNewer()
+            haveNew = repository.switchNewOnShowed()
             repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
@@ -153,7 +148,7 @@ class PostViewModel @Inject constructor(
     fun showNewPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(refreshing = true)
-            haveNew = repository.haveNewer()
+            haveNew = repository.switchNewOnShowed()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             errorMessage = repository.getErrMess()

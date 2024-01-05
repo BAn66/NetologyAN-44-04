@@ -11,6 +11,8 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'dagger.hilt.android.plugin'
 
+//1
+
 android {
     namespace 'ru.netologia.nmedia'
     compileSdk 34
