@@ -34,5 +34,7 @@ class EditPostActivity : AppCompatActivity() {
         binding.cancelEdit.setOnClickListener {
             finish()
         }
+
+
     }
 }

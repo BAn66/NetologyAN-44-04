@@ -6,10 +6,6 @@ import androidx.room.PrimaryKey
 import ru.netologia.nmedia.dto.Attachment
 import ru.netologia.nmedia.dto.Post
 
-//import ru.netologia.nmedia.enumeration.AttachmentType
-//import ru.netologia.nmedia.dto.Attachment
-
-
 //Для ROOM
 @Entity
 data class PostEntity(
@@ -26,13 +22,9 @@ data class PostEntity(
     val attachment: Attachment? = null,
     val savedOnServer: Boolean = false,
     val showed: Boolean = true,
-//    val shares: Long = 0L,
-//    val views: Long = 0L,
-//    val video: String = ""
 ) {
     fun toDto() = Post(
         id, authorId, author, authorAvatar, content, published, likedByMe, likes, attachment
-//        shares, views, video
     )
 
     companion object {
@@ -47,7 +39,6 @@ data class PostEntity(
                 postDto.likedByMe,
                 postDto.likes,
                 postDto.attachment,
-//                post.shares, post.views, post.video
             )
     }
 }

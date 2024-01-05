@@ -19,19 +19,11 @@ class PostViewHolder(
     private val binding: CardPostBinding, private val onIteractionLister: OnIteractionLister
 
 ) : RecyclerView.ViewHolder(binding.root) {
-    //    @SuppressLint("SimpleDateFormat")
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
             published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
             content.text = post.content
-
-//            if (post.attachment != null) {
-////                videoGroup.visibility = Group.GONE
-////            } else {
-////                videoGroup.visibility = Group.VISIBLE
-//////                videoHolder.visibility = ImageView.VISIBLE
-//            }
 
             val urlAvatar = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
             Glide.with(avatar)
@@ -59,34 +51,11 @@ class PostViewHolder(
 
             btnLike.text = eraseZero(post.likes.toLong())
             btnLike.isChecked = post.likedByMe
-//            btnShare.text = eraseZero(post.shares)
-//            btnViews.text = eraseZero(post.views)
-
-
-//            play.setOnClickListener {
-//                println("videogroup clicked")
-//                onIteractionLister.playVideo(post)
-//            }
-
-//            videoHolder.setOnClickListener {
-//                println("videogroup clicked")
-//                onIteractionLister.playVideo(post)
-//            }
-
-//            videoContent.setOnClickListener {
-//                println("videogroup clicked")
-//                onIteractionLister.playVideo(post)
-//            }
 
             btnLike.setOnClickListener {
                 println("like clicked")
                 onIteractionLister.like(post)
             }
-
-//            btnShare.setOnClickListener {
-//                println("share clicked")
-//                onIteractionLister.share(post)
-//            }
 
             content.setOnClickListener {
                 println("content clicked")
@@ -108,14 +77,11 @@ class PostViewHolder(
                             R.id.remove -> {
                                 onIteractionLister.remove(post)
                                 true
-
                             }
-
                             R.id.edit -> {
                                 onIteractionLister.edit(post)
                                 true
                             }
-
                             else -> false
                         }
                     }

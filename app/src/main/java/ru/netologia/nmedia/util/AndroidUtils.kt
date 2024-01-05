@@ -13,8 +13,6 @@ object AndroidUtils {
     fun hideKeyboard(view: View) { //скрываем клавиатуру после сохранения поста
         val inputMethodManager = view.context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
-
-
     }
 
     fun View.focusAndShowKeyboard() { //показываем клавиатуру при редактировании поста
@@ -67,6 +65,7 @@ object AndroidUtils {
 //            layout.findViewById<View>(id).visibility = visibility
 //        }
 
+    //из пэггинга в лист
     @Suppress("UNCHECKED_CAST")
     suspend fun <T : Any> PagingData<T>.toList(): List<T> {
         val flow = PagingData::class.java.getDeclaredField("flow").apply {

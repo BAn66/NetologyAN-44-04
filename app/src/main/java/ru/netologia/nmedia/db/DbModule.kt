@@ -21,7 +21,6 @@ class DbModule {
         @ApplicationContext
         context: Context
     ): AppDb = Room.databaseBuilder(context, AppDb::class.java, "app.db")
-//                .allowMainThreadQueries()
         .fallbackToDestructiveMigration()
         .build()
 

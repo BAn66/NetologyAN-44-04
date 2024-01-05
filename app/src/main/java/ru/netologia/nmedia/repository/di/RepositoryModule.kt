@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-interface RepositoryModule {
+interface RepositoryModule { //это надо для HILT
 
     @Singleton
     @Binds

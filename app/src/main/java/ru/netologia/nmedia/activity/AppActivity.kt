@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-//import android.os.Handler
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -12,33 +11,24 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
-//import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-//import androidx.navigation.NavController
-//import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
-//import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_INDEFINITE
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
-
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.activity.NewPostFragment.Companion.text
 import ru.netologia.nmedia.auth.AppAuth
-//import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.ActivityAppBinding
-//import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.viewmodel.AuthViewModel
 import javax.inject.Inject
-
-//import ru.netologia.nmedia.viewmodel.ViewModelFactory
 
 @AndroidEntryPoint //Работа с зависимостями через HILT
 class AppActivity : AppCompatActivity() {
@@ -46,19 +36,14 @@ class AppActivity : AppCompatActivity() {
     @Inject//Внедряем зависимость для авторизации
     lateinit var appAuth: AppAuth
 
-    @Inject//Внедряем зависимость для д/з 2
+    @Inject
     lateinit var firebaseMessaging: FirebaseMessaging
 
-    @Inject//Внедряем зависимость для д/з 2
+    @Inject
     lateinit var googleApiAvailability: GoogleApiAvailability
 
-    //    private val dependencyContainer = DependencyContainer.getInstance() //Внедрение контейнера зависимостей// Не нужен если используются HILT
-    private val viewModel by viewModels<AuthViewModel>(
-//        factoryProducer = {
-//            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
-//        }//Передаем контейнер зависимостей во вьюмодел //Не нужен если используются HILT
-    )
 
+    private val viewModel by viewModels<AuthViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,9 +66,9 @@ class AppActivity : AppCompatActivity() {
                 supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
             val navController = navHostFragment.navController
 
-            navController.navigate(R.id.action_feedFragment_to_newPostFragment,
-//                bundleOf("content" to text) //проброс аргументов между фрагментами и активити
-                Bundle().also { it.text = text }
+            navController.navigate(
+                R.id.action_feedFragment_to_newPostFragment,
+                Bundle().also { it.text = text }//проброс аргументов между фрагментами и активити
             )
         }
 
@@ -99,7 +84,6 @@ class AppActivity : AppCompatActivity() {
 
 
         //ANDAD_01 Д/з №2
-//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
         firebaseMessaging.token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 println("some stuff happened: ${task.exception}")
@@ -128,26 +112,16 @@ class AppActivity : AppCompatActivity() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.signin -> {
-                        findNavController(R.id.nav_host_fragment)
-                            .navigate(R.id.authFragment)
-//                            .addOnDestinationChangedListener { controller,
-//                                                               destination,
-//                                                               arguments ->
-//                                supportActionBar?.setDisplayHomeAsUpEnabled(destination.id == R.id.authFragment)
-//                            }
-
-//                        AppAuth.getInstance().setAuth(5, "x-token") //Временная заглушка
+                        findNavController(R.id.nav_host_fragment).navigate(R.id.authFragment)
                         true
                     }
 
                     R.id.signup -> {
-//                        dependencyContainer.appAuth.setAuth(5, "x-token")//до HILT
                         appAuth.setAuth(5, "x-token")
                         true
                     }
 
                     R.id.signout -> {
-//                        dependencyContainer.appAuth.removeAuth() //до HILT
                         appAuth.removeAuth()
                         true
                     }
@@ -157,11 +131,8 @@ class AppActivity : AppCompatActivity() {
             }
         })
 
-
         requestNotificationsPermission()
         checkGoogleApiAvailability()
-
-
     }
 
 

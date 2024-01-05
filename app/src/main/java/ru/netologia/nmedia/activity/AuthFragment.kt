@@ -11,15 +11,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.netologia.nmedia.R
-//import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.FragmentAuthBinding
-//import ru.netologia.nmedia.di.DependencyContainer
 import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
 import ru.netologia.nmedia.util.StringArg
 import ru.netologia.nmedia.viewmodel.SignInViewModel
 
-
-//import ru.netologia.nmedia.viewmodel.ViewModelFactory
 @AndroidEntryPoint
 class AuthFragment : Fragment() {
 
@@ -27,12 +23,8 @@ class AuthFragment : Fragment() {
         var Bundle.textLogin by StringArg
         var Bundle.textPassword by StringArg
     }
-//    private val dependencyContainer = DependencyContainer.getInstance()
-    private val viewModel: SignInViewModel by activityViewModels<SignInViewModel>(
-//        factoryProducer = {
-//            ViewModelFactory(dependencyContainer.repository, dependencyContainer.appAuth)
-//        }
-    )
+
+    private val viewModel: SignInViewModel by activityViewModels<SignInViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,

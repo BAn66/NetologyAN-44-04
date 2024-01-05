@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.map
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.map
@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -26,7 +27,6 @@ import ru.netologia.nmedia.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
 
-
 private val empty = Post(
     id = 0L,
     author = "",
@@ -37,72 +37,42 @@ private val empty = Post(
     likedByMe = false,
     likes = 0,
     attachment = null
-//    shares = 0L,
-//    views = 0L,
-//    video = ""
 )
-
-//class PostViewModel(application: Application, myRepository: PostRepository) :
-//class PostViewModel(application: Application) : AndroidViewModel(application) { // до внедрения зависимостей
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
     appAuth: AppAuth
 ):ViewModel(){
 
-    // Работа с сетевыми запросами
+    var haveNew: Boolean = false //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
 
-//    private val repository: PostRepository = // до внедрения зависимостей
-//        PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
-    var haveNew: Boolean =
-    false //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
-
-
-    //    val data: LiveData<FeedModel> = repository.data.map(::FeedModel) //Все посты в внутри фиидмодели //Без Flow
+    private var maxId = MutableStateFlow(0L) //Для получения максимального id из текущего списка
 
     @OptIn(ExperimentalCoroutinesApi::class)
-//    val data: LiveData<FeedModel> = AppAuth.getInstance()//Добавляем флоу для Auth  до внедрения зависимостей2
-//    val data: LiveData<FeedModel> = appAuth//Добавляем флоу для Auth //До paging
     val data: Flow<PagingData<Post>> = appAuth
         .authStateFlow
         .flatMapLatest {auth ->
             repository.data
-                .map {posts ->
-//                    FeedModel( //До paging
-                        posts.map{it.copy(ownedByMe = auth.id == it.authorId)}
-//                    ,
-//                        posts.isEmpty()
-//                    )
+                .map { pagingData ->
+                    pagingData.map { post ->
+                        maxId.value = maxOf(post.id, maxId.value)
+                        post.copy(ownedByMe = auth.id == post.authorId)
+                    }
                 }
                 .catch {
                     errorMessage = repository.getErrMess()
                 }
         }
-//        .asLiveData(Dispatchers.Default) //До paging
         .flowOn(Dispatchers.Default)
 
-//        repository.data //только для флоу c постами
-//        .map(::FeedModel)
-//        .catch {
-//            errorMessage = repository.getErrMess()
-////                _dataState.value = FeedModelState(error = true)
-//        }
-//        .asLiveData(Dispatchers.Default) //запускаем не на главном потоке
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val newerCount = maxId.flatMapLatest { id ->
+        repository.getNewer(id)
+    }.asLiveData(Dispatchers.Default)
 
     private val _photo = MutableLiveData<PhotoModel?>(null)  //Для картинок
     val photo: LiveData<PhotoModel?>
         get() = _photo
-
-//    val newerCount = data.switchMap { //До Paging
-//        repository.getNewer(it.posts.firstOrNull()?.id ?: 0L)
-//            .asLiveData(Dispatchers.Default)
-//    }
-
-//        val newerCount = data.flatMapLatest {
-//            repository.getNewer(it.toList().firstOrNull()?.id ?: 0L)
-//        }.asLiveData(Dispatchers.Default)
-
-
 
     private val _dataState = MutableLiveData(FeedModelState()) //Состояние
     val dataState: LiveData<FeedModelState>
@@ -125,17 +95,6 @@ class PostViewModel @Inject constructor(
     fun loadPosts() = viewModelScope.launch { //Загружаем посты c помщью коротюнов и вьюмоделскоуп
         try {
             _dataState.value = FeedModelState(loading = true)
-            repository.getAll()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            errorMessage = repository.getErrMess()
-            _dataState.value = FeedModelState(error = true)
-        }
-    }
-
-    fun refreshPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(refreshing = true)
             haveNew = repository.switchNewOnShowed()
             repository.getAll()
             _dataState.value = FeedModelState()
@@ -144,29 +103,15 @@ class PostViewModel @Inject constructor(
             _dataState.value = FeedModelState(error = true)
         }
     }
-
-    fun showNewPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(refreshing = true)
-            haveNew = repository.switchNewOnShowed()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            errorMessage = repository.getErrMess()
-            _dataState.value = FeedModelState(error = true)
-        }
-    }
-
 
     fun changeContentAndSave(content: String) {
         val text: String = content.trim()
         //функция изменения и сохранения в репозитории
         edited.value?.let {
             val postCopy = it.copy(
-//                authorId = 555,
                 author = "me",
                 content = text,
                 published = System.currentTimeMillis(),
-//                ownedByMe = true
             )
             viewModelScope.launch {
                 try {
@@ -192,12 +137,9 @@ class PostViewModel @Inject constructor(
         edited.value = post
     }
 
-
     fun emptyNew() {
         edited.value = empty
     }
-
-    //    fun shareById(id: Long) = repository.shareById(id)
 
     fun likeById(id: Long, likedByMe: Boolean) {
         viewModelScope.launch {
@@ -209,34 +151,6 @@ class PostViewModel @Inject constructor(
                 _dataState.value = FeedModelState(error = true)
             }
         }
-
-//                repository.likeByIdAsync(id, likedByMe, object : PostRepository.SaveCallback {
-//                    override fun onSuccess(result: Unit) {
-////                val updatePosts = _data.value?.posts?.map {
-////                    if (it.id == id) {
-////                        result
-////                    } else {
-////                        it
-////                    }
-////                }.orEmpty()
-////                val resultList = if (_data.value?.posts == updatePosts) {
-////                    listOf(result) + updatePosts
-////                } else {
-////                    updatePosts
-////                }
-////                _data.postValue(
-////                    _data.value?.copy(posts = resultList )
-////                )
-//                        loadPosts()
-//                    }
-//
-//                    fun onError(e: Exception) {
-////                _data.postValue(FeedModelState(error = true))
-//                        _dataState.value = FeedModelState(error = true)
-//                        errorMessage = repository.getErrMess()
-//                    }
-//                }
-//                )
     }
 
     fun removeById(id: Long) {
@@ -249,192 +163,9 @@ class PostViewModel @Inject constructor(
                 _dataState.value = FeedModelState(error = true)
             }
         }
-
-//        repository.removeByIdAsync(id, object : PostRepository.SaveCallback {
-//            override fun onSuccess(result: Unit) {
-//                loadPosts()
-//            }
-//
-//            override fun onError(e: Exception) {
-//                _dataState.value = FeedModelState(error = true)
-//                errorMessage = repository.getErrMess()
-//            }
-//        })
-//        // Оптимистичная модель
-////        val old = _data.value?.posts.orEmpty()
-////        val newResult = _data.value?.copy(posts = _data.value?.posts.orEmpty()
-////            .filter { it.id != id })
-////        repository.removeByIdAsync(id, object : PostRepository.GetAllCallback<Post> {
-////            override fun onSuccess(result: Post) {
-////                _data.postValue(newResult)
-////            }
-////            override fun onError(e: Exception) {
-////                _data.postValue(_data.value?.copy(posts = old))
-////            }
-////
-////        })
     }
 
     fun clearPhoto() {
         _photo.value = null
     }
 }
-
-
-// Old version
-//class PostViewModel(application: Application) : AndroidViewModel(application) {
-//
-//
-//    // Работа с сетевыми запросами
-//    private val repository: PostRepository = PostRepositoryImpl() // в продакшене так лучше не делать, а переносить обявление репозитория в конструктор.
-//    private val _data = MutableLiveData(FeedModelState())
-//
-//    val data: LiveData<FeedModelState> = _data
-//    private val _postCreated = SingleLiveEvent<Unit>()
-//    val postCreated: LiveData<Unit> = _postCreated
-//    val edited = MutableLiveData(empty)
-//
-//    var errorMessage : Pair<Int, String> = Pair(0, "")
-//
-//    init {
-//        load()
-//    }
-//
-//
-//    fun load() {
-////        _data.postValue(FeedModelState(loading = true)) //Начинаем загрузку в okhttp на фоновом потоке поэтому postValue
-//        _data.value =
-//            FeedModelState(loading = true) //Начинаем загрузку через value потому что retrofit работает на главном потоке
-//        //В Асинхронный вариант thread не нужен, потому что асинхрон реализован уже в enqueue библиотеки okhttp
-//
-//        repository.getAllAsync(object : PostRepository.GetAllCallback<List<Post>> {
-//            override fun onSuccess(result: List<Post>) {
-////                _data.postValue(FeedModelState(posts = result, empty = result.isEmpty())) // okhttp
-//                _data.value = FeedModelState(posts = result, empty = result.isEmpty()) //retrofit
-//            }
-//
-//            override fun onError(e: Exception) {
-////                _data.postValue(FeedModelState(error = true)) // okhttp
-//
-//                _data.value = FeedModelState(error = true) //retrofit
-//                errorMessage = repository.getErrMess()
-//            }
-//        })
-//    }
-//
-//
-//    fun likeById(id: Long, likedByMe: Boolean) {
-//        repository.likeByIdAsync(id, likedByMe, object : PostRepository.SaveCallback {
-//            override fun onSuccess(result: Unit) {
-////                val updatePosts = _data.value?.posts?.map {
-////                    if (it.id == id) {
-////                        result
-////                    } else {
-////                        it
-////                    }
-////                }.orEmpty()
-////                val resultList = if (_data.value?.posts == updatePosts) {
-////                    listOf(result) + updatePosts
-////                } else {
-////                    updatePosts
-////                }
-////                _data.postValue(
-////                    _data.value?.copy(posts = resultList )
-////                )
-//                load()
-//            }
-//
-//            override fun onError(e: Exception) {
-////                _data.postValue(FeedModelState(error = true))
-//                _data.value = FeedModelState(error = true)
-//                errorMessage = repository.getErrMess()
-//            }
-//        }
-//        )
-//    }
-//
-//    //    fun shareById(id: Long) = repository.shareById(id)
-//
-//    fun removeById(id: Long) {
-//        repository.removeByIdAsync(id, object : PostRepository.SaveCallback {
-//            override fun onSuccess(result: Unit) {
-//                load()
-//            }
-//
-//            override fun onError(e: Exception) {
-//                _data.value = FeedModelState(error = true)
-//                errorMessage = repository.getErrMess()
-//            }
-//        })
-//        // Оптимистичная модель
-////        val old = _data.value?.posts.orEmpty()
-////        val newResult = _data.value?.copy(posts = _data.value?.posts.orEmpty()
-////            .filter { it.id != id })
-////        repository.removeByIdAsync(id, object : PostRepository.GetAllCallback<Post> {
-////            override fun onSuccess(result: Post) {
-////                _data.postValue(newResult)
-////            }
-////            override fun onError(e: Exception) {
-////                _data.postValue(_data.value?.copy(posts = old))
-////            }
-////
-////        })
-//    }
-//
-//    fun changeContentAndSave(content: String) {
-//        //функция изменения и сохранения в репозитории
-//        edited.value?.let { editedPost ->
-//            val text: String = content.trim()
-//            if (editedPost.content != text) {
-//                repository.saveAsync(
-//                    editedPost.copy(
-//                        content = text,
-//                        author = "me",
-//                        published = System.currentTimeMillis()
-//                    ),
-//                    object : PostRepository.GetAllCallback<Post> {
-//                        override fun onSuccess(result: Post) {
-//                            val value = _data.value
-//
-//                            val updatePosts = value?.posts?.map {
-//                                if (it.id == editedPost.id) {
-//                                    result
-//                                } else {
-//                                    it
-//                                }
-//                            }.orEmpty()
-//
-//                            val resultList: List<Post> = if (value?.posts == updatePosts) {
-//                                listOf(result) + updatePosts
-//                            } else {
-//                                updatePosts
-//                            }
-//
-//                            _data.value = value?.copy(posts = resultList)
-//
-//                            //работа с SingleLiveEvent
-//                            _postCreated.value = Unit
-//                        }
-//
-//                        override fun onError(e: Exception) {
-//                            _data.value = FeedModelState(error = true)
-//                            errorMessage = repository.getErrMess()
-//
-//                        }
-//                    }
-//                )
-//            }
-//            edited.value = empty
-//        }
-//    }
-//
-//    fun edit(post: Post) {
-//        edited.value = post
-//    }
-//
-//    fun emptyNew() {
-//        edited.value = empty
-//    }
-//
-//}
-
