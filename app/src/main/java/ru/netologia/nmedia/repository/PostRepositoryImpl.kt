@@ -23,6 +23,8 @@ import ru.netologia.nmedia.api.ApiService
 //import retrofit2.http.Multipart
 //import okhttp3.Dispatcher
 import ru.netologia.nmedia.dao.PostDao
+import ru.netologia.nmedia.dao.PostRemoteKeyDao
+import ru.netologia.nmedia.db.AppDb
 import ru.netologia.nmedia.dto.Attachment
 import ru.netologia.nmedia.dto.Token
 import ru.netologia.nmedia.entity.PostEntity
@@ -37,7 +39,9 @@ import javax.inject.Inject
 
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    postRemoteKeyDao: PostRemoteKeyDao,
+    appDb: AppDb
 ) : PostRepository {
 
     //плэйсхолдеры отключены для упрощения демонстрации Paging
@@ -45,7 +49,12 @@ class PostRepositoryImpl @Inject constructor(
     override val data: Flow<PagingData<Post>>  = Pager(
         config = PagingConfig(pageSize = 10, enablePlaceholders = false),
         pagingSourceFactory = {postDao.getPagingSource()},
-        remoteMediator = PostRemoteMediator(apiService = apiService, postDao = postDao)
+        remoteMediator = PostRemoteMediator(
+            apiService = apiService,
+            postDao = postDao,
+            postRemoteKeyDao = postRemoteKeyDao,
+            appDb = appDb,
+            )
     ).flow
         .map {
             it.map(PostEntity::toDto)
