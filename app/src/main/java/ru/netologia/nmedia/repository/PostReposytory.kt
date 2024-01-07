@@ -9,6 +9,7 @@ import ru.netologia.nmedia.model.PhotoModel
 interface PostRepository {
     val data: Flow<PagingData<Post>>
     fun getNewer(id: Long): Flow<Int>
+//    fun getAfter(id: Long): Flow<Int>
     suspend fun switchNewOnShowed(): Boolean
     suspend fun getAll()
     suspend fun save(post: Post)

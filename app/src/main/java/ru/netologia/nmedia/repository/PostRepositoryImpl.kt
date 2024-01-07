@@ -1,8 +1,11 @@
 package ru.netologia.nmedia.repository
 
 import androidx.lifecycle.asLiveData
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 //import ru.netologia.nmedia.api.PostsApi
 import ru.netologia.nmedia.dto.Post
 import java.io.IOException
@@ -12,6 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Response
@@ -32,17 +36,20 @@ import javax.inject.Inject
 
 
 class PostRepositoryImpl @Inject constructor(
-    private val dao: PostDao,
+    private val postDao: PostDao,
     private val apiService: ApiService
 ) : PostRepository {
 
     //плэйсхолдеры отключены для упрощения демонстрации Paging
-    override val data = Pager(
+    @OptIn(ExperimentalPagingApi::class)
+    override val data: Flow<PagingData<Post>>  = Pager(
         config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-        pagingSourceFactory = {
-            PostPagingSource(apiService)
-        }
+        pagingSourceFactory = {postDao.getPagingSource()},
+        remoteMediator = PostRemoteMediator(apiService = apiService, postDao = postDao)
     ).flow
+        .map {
+            it.map(PostEntity::toDto)
+        }
 
     //Для отслеживания кодов ошибок
     private var responseErrMess: Pair<Int, String> = Pair(0, "")
@@ -62,11 +69,11 @@ class PostRepositoryImpl @Inject constructor(
             val bodyRsponse = response.body() ?: throw ApiError(response.code(), response.message())
             val entityList = bodyRsponse.toEntity() //Превращаем ответ в лист с энтити
 
-            dao.insert(entityList)// А вот здесь в Локальную БД вставляем из сети все посты
+            postDao.insert(entityList)// А вот здесь в Локальную БД вставляем из сети все посты
             //А тут всем постам пришедшим с сервера ставим отметку тру
             for (postEntity: PostEntity in entityList) {
                 if (!postEntity.savedOnServer) {
-                    dao.saveOnServerSwitch(postEntity.id)
+                    postDao.saveOnServerSwitch(postEntity.id)
                 }
             }
 
@@ -82,6 +89,8 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
+//    override fun getAfter(id: Long): Flow<Int> {}
+
     override fun getNewer(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000L)
@@ -91,7 +100,7 @@ class PostRepositoryImpl @Inject constructor(
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(
+            postDao.insert(
                 body.toEntity().map {
                     it.copy(
                         savedOnServer = true,
@@ -105,7 +114,7 @@ class PostRepositoryImpl @Inject constructor(
 
 
     override suspend fun switchNewOnShowed(): Boolean {
-        dao.showedSwitch()
+        postDao.showedSwitch()
         return false
     }
 
@@ -114,7 +123,7 @@ class PostRepositoryImpl @Inject constructor(
         try {
             //Запись сначала в БД.
             val postEntentety = PostEntity.fromDto(post)
-            dao.insert(postEntentety) //при сохранении поста, в базу вносится интентети с отметкой что оно не сохарнено на сервере
+            postDao.insert(postEntentety) //при сохранении поста, в базу вносится интентети с отметкой что оно не сохарнено на сервере
             val response =
                 apiService.save(post.copy(id = 0)) //Если у поста айди 0 то сервер воспринимает его как новый
             if (!response.isSuccessful) { //если отвтет с сервера не пришел, то отметка о не записи на сервер по прежнему фолс
@@ -122,7 +131,7 @@ class PostRepositoryImpl @Inject constructor(
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.saveOnServerSwitch(body.id)// исключение не брошено меняем отметку о записи на сервере на тру
+            postDao.saveOnServerSwitch(body.id)// исключение не брошено меняем отметку о записи на сервере на тру
 
         } catch (e: IOException) {
             responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())
@@ -136,7 +145,7 @@ class PostRepositoryImpl @Inject constructor(
 
     suspend fun saveOnServerCheck() {
         try {
-            for (postEntity: PostEntity in dao.getAll()
+            for (postEntity: PostEntity in postDao.getAll()
                 .asLiveData(Dispatchers.Default)
                 .value ?: emptyList()
             ) {
@@ -155,7 +164,7 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun likeById(id: Long, likedByMe: Boolean) {
         try {
-            dao.likeById(id)
+            postDao.likeById(id)
             val response =
                 apiService.let { if (likedByMe) it.dislikeById(id) else it.likeById(id) }
             if (!response.isSuccessful) {
@@ -176,7 +185,7 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun removeById(id: Long) {
         try {
-            dao.removeById(id)
+            postDao.removeById(id)
             val response = apiService.removeById(id)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
@@ -207,7 +216,7 @@ class PostRepositoryImpl @Inject constructor(
             )
 
             val postEntentety = PostEntity.fromDto(postCopy)
-            dao.insert(postEntentety)
+            postDao.insert(postEntentety)
 
             val response = apiService.save(
                 postCopy.copy(
@@ -224,7 +233,7 @@ class PostRepositoryImpl @Inject constructor(
                 throw ApiError(response.code(), response.message())
             }
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.saveOnServerSwitch(body.id)
+            postDao.saveOnServerSwitch(body.id)
 
         } catch (e: IOException) {
             responseErrMess = Pair(NetworkError.code.toInt(), NetworkError.message.toString())

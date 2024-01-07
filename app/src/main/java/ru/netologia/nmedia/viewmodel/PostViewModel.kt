@@ -44,7 +44,7 @@ class PostViewModel @Inject constructor(
     appAuth: AppAuth
 ):ViewModel(){
 
-    var haveNew: Boolean = false //TODO здесь должна быть функция которая говорит есть ли новые не загруженные посты
+    var haveNew: Boolean = false //маркер для всплывашки "Обновить"
 
     private var maxId = MutableStateFlow(0L) //Для получения максимального id из текущего списка
 
@@ -55,7 +55,7 @@ class PostViewModel @Inject constructor(
             repository.data
                 .map { pagingData ->
                     pagingData.map { post ->
-                        maxId.value = maxOf(post.id, maxId.value)
+                        maxId.value = maxOf(post.id, maxId.value)// сравнение текущего макс.ид и ид в паггинге
                         post.copy(ownedByMe = auth.id == post.authorId)
                     }
                 }
@@ -86,10 +86,6 @@ class PostViewModel @Inject constructor(
 
     init {
         loadPosts()
-    }
-
-    fun setPhoto(uri: Uri, file: File) {
-        _photo.value = PhotoModel(uri, file)
     }
 
     fun loadPosts() = viewModelScope.launch { //Загружаем посты c помщью коротюнов и вьюмоделскоуп
@@ -163,6 +159,10 @@ class PostViewModel @Inject constructor(
                 _dataState.value = FeedModelState(error = true)
             }
         }
+    }
+
+    fun setPhoto(uri: Uri, file: File) {
+        _photo.value = PhotoModel(uri, file)
     }
 
     fun clearPhoto() {
