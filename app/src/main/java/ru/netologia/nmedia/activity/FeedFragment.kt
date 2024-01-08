@@ -11,12 +11,15 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
@@ -98,18 +101,36 @@ class FeedFragment : Fragment() {
             toastErrMess(state)
         }
 
-        lifecycleScope.launchWhenCreated { //После paging
-            viewModel.data.collectLatest {
-                adapter.submitData(it)
+//        lifecycleScope.launchWhenCreated { //После paging
+//            viewModel.data.collectLatest {
+//                adapter.submitData(it)
+//            }
+//        }
+        //Актуальный вариант
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.data.collectLatest(adapter::submitData)
             }
         }
 
-        lifecycleScope.launchWhenCreated {// Обновляшка по свайпу //c Paging
-            adapter.loadStateFlow.collectLatest {
-                binding.swiperefresh.isRefreshing =
-                it.refresh is LoadState.Loading
-                        || it.append is LoadState.Loading
-                        || it.prepend is LoadState.Loading
+//        lifecycleScope.launchWhenCreated {// Обновляшка по свайпу //c Paging
+//            adapter.loadStateFlow.collectLatest {
+//                binding.swiperefresh.isRefreshing =
+//                it.refresh is LoadState.Loading
+//                        || it.append is LoadState.Loading
+//                        || it.prepend is LoadState.Loading
+//            }
+//        }
+
+        // Актуальный вариант
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                adapter.loadStateFlow.collectLatest { state ->
+                    binding.swiperefresh.isRefreshing =
+                        state.refresh is LoadState.Loading ||
+                                state.prepend is LoadState.Loading ||
+                                state.append is LoadState.Loading
+                }
             }
         }
 
@@ -121,12 +142,22 @@ class FeedFragment : Fragment() {
             adapter.refresh()
         }
 
-        lifecycleScope.launchWhenCreated {
-            appAuth.authStateFlow.collectLatest {
-                Log.d("REFRESH", "я обновил")
-                adapter.refresh()
+//        lifecycleScope.launchWhenCreated {
+//            appAuth.authStateFlow.collectLatest {
+//                Log.d("REFRESH", "я обновил")
+//                adapter.refresh()
+//            }
+//        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appAuth.authStateFlow.collectLatest {
+                    Log.d("REFRESH", "я обновил")
+                    adapter.refresh()
+                }
             }
         }
+
 
 
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)

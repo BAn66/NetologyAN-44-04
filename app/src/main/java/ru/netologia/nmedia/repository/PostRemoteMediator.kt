@@ -12,6 +12,7 @@ import ru.netologia.nmedia.dao.PostRemoteKeyDao
 import ru.netologia.nmedia.db.AppDb
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.PostRemoteKeyEntity
+import ru.netologia.nmedia.entity.toEntity
 import ru.netologia.nmedia.error.ApiError
 import java.io.IOException
 
@@ -29,13 +30,15 @@ class PostRemoteMediator(
         try {
             val response = when (loadType) {
                 LoadType.REFRESH -> { //обработка рефреша
-                    apiService.getLatest(state.config.pageSize)
+                    apiService.getLatest(state.config.initialLoadSize)
                 }
 
-                LoadType.PREPEND -> { //Обработка скролла вверх(новая страница не будет загружаться, мы сделали специально. Так в большинстве приложений сейчас)
-                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
-                    apiService.getAfter(id, state.config.pageSize)
-                }
+                LoadType.PREPEND ->
+                    null
+//                { //Обработка скролла вверх(новая страница не будет загружаться, мы сделали специально. Так в большинстве приложений сейчас)
+//                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
+//                    apiService.getAfter(id, state.config.pageSize)
+//                }
 
                 LoadType.APPEND -> {//Обработка скролла вниз
                     val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(false)
@@ -43,7 +46,11 @@ class PostRemoteMediator(
                 }
             }
 
-            if (!response.isSuccessful) {
+//            if (!response.isSuccessful) {
+//                throw HttpException(response)
+//            }
+
+            if (!response?.isSuccessful!!) {
                 throw HttpException(response)
             }
             val body = response.body() ?: throw ApiError(
@@ -55,7 +62,7 @@ class PostRemoteMediator(
             appDb.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        postDao.clear()
+                        postRemoteKeyDao.clear()
                         postRemoteKeyDao.insert(
                             listOf(
                                 PostRemoteKeyEntity(
@@ -68,6 +75,7 @@ class PostRemoteMediator(
                                 ),
                             )
                         )
+                        postDao.clear()
                     }
 
                     LoadType.PREPEND -> {//Обработка скролла вверх
@@ -89,11 +97,12 @@ class PostRemoteMediator(
                         )
                     }
                 }
+                postDao.insert(body.toEntity())
             }
 
-            val nextKey = if (body.isEmpty()) null else body.last().id
+//            val nextKey = if (body.isEmpty()) null else body.last().id
 
-            postDao.insert(body.map(PostEntity::fromDto))//записываем тело ответа на запрос в БД
+//            postDao.insert(body.map(PostEntity::fromDto))//записываем тело ответа на запрос в БД
 
             return MediatorResult.Success(
                 body.isEmpty()

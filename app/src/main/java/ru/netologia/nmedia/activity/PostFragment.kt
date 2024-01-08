@@ -9,20 +9,28 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.paging.PagingData
+import androidx.paging.filter
+import androidx.paging.map
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentPostBinding
 import ru.netologia.nmedia.dto.Post
+import ru.netologia.nmedia.util.AndroidUtils.toList
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
 
 
 @AndroidEntryPoint
-class PostFragment: Fragment (){
+class PostFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,9 +54,7 @@ class PostFragment: Fragment (){
                 viewModel.edit(post)
             }
 
-            override fun openPost(post: Post) {
-                TODO("Not yet implemented")
-            }
+            override fun openPost(post: Post) {}
 
             override fun openImage(post: Post) {
                 // Здесь мы можем использовать Kotlin экстеншен функцию из fragment-ktx
@@ -64,10 +70,17 @@ class PostFragment: Fragment (){
         //Получаем айди поста для заполнения данных
         setFragmentResultListener("requestIdForPostFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
-            //            val result = bundle.getLong("id")
-            lifecycleScope.launchWhenCreated { //После paging
-                viewModel.data.collectLatest {
-                    adapter.submitData(it)
+            val result = bundle.getLong("id")
+            val idPost = MutableStateFlow(result).value
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.data.collectLatest {
+                        adapter.submitData(
+                            it.filter {
+                                it.id == idPost
+                            }
+                        )
+                    }
                 }
             }
         }

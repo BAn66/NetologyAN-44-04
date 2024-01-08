@@ -62,6 +62,7 @@ class PostViewHolder(
                 println("content clicked")
                 onIteractionLister.openPost(post)
 
+
             }
             postLayout.setOnClickListener { onIteractionLister.openPost(post) }
             avatar.setOnClickListener { onIteractionLister.openPost(post) }
