@@ -22,7 +22,8 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
+//            published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
+            published.text = post.id.toString()
             content.text = post.content
 
             val urlAvatar = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
@@ -60,6 +61,7 @@ class PostViewHolder(
             content.setOnClickListener {
                 println("content clicked")
                 onIteractionLister.openPost(post)
+
 
             }
             postLayout.setOnClickListener { onIteractionLister.openPost(post) }

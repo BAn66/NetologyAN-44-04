@@ -19,13 +19,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentNewPostBinding
 import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
@@ -61,8 +64,8 @@ class NewPostFragment : Fragment() {
             )
                 .setAction(R.string.retry_loading) { viewModel.loadPosts() }
                 .show()
-                viewModel.errorMessage = Pair(0, "")
-                findNavController().popBackStack(R.id.feedFragment, false)
+            viewModel.errorMessage = Pair(0, "")
+            findNavController().popBackStack(R.id.feedFragment, false)
         }
     }
 
@@ -92,13 +95,15 @@ class NewPostFragment : Fragment() {
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId = bundle.getLong("id")
             if (resultId != 0L) {
-                lifecycleScope.launchWhenCreated {
-                    val resultPost =
-                        viewModel.data.single().toList()
-                            .filter { it -> it.id == resultId }[0].copy()
-                    viewModel.edit(resultPost)
-                    binding.editTextNewPost.setText(resultPost.content)
-                    //todo добавить загрузку картинки при редактировании картинки
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        val resultPost =
+                            viewModel.data.single().toList()
+                                .filter { it -> it.id == resultId }[0].copy()
+                        viewModel.edit(resultPost)
+                        binding.editTextNewPost.setText(resultPost.content)
+                        //todo добавить загрузку картинки при редактировании картинки
+                    }
                 }
             }
         }
@@ -108,13 +113,15 @@ class NewPostFragment : Fragment() {
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val resultId2 = bundle.getLong("id")
             if (resultId2 != 0L) {
-                lifecycleScope.launchWhenCreated {
-                    val resultPost =
-                        viewModel.data.single().toList()
-                            .filter { it -> it.id == resultId2 }[0].copy()
-                    viewModel.edit(resultPost)
-                    binding.editTextNewPost.setText(resultPost.content)
-                    //todo добавить загрузку картинки при редактировании картинки
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        val resultPost =
+                            viewModel.data.single().toList()
+                                .filter { it -> it.id == resultId2 }[0].copy()
+                        viewModel.edit(resultPost)
+                        binding.editTextNewPost.setText(resultPost.content)
+                        //todo добавить загрузку картинки при редактировании картинки
+                    }
                 }
             }
         }
