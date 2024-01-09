@@ -6,22 +6,23 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-//import ru.netologia.nmedia.api.PostsApi
+
 import ru.netologia.nmedia.dto.Post
 import java.io.IOException
-//import androidx.lifecycle.map
+
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import retrofit2.Response
 import ru.netologia.nmedia.api.ApiService
-//import retrofit2.http.Multipart
-//import okhttp3.Dispatcher
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.dao.PostRemoteKeyDao
 import ru.netologia.nmedia.db.AppDb
@@ -30,9 +31,12 @@ import ru.netologia.nmedia.dto.Token
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.toEntity
 import ru.netologia.nmedia.enumeration.AttachmentType
-import ru.netologia.nmedia.error.*
 import ru.netologia.nmedia.model.PhotoModel
 import ru.netology.nmedia.dto.Media
+import ru.netology.nmedia.error.ApiError
+import ru.netology.nmedia.error.AppError
+import ru.netology.nmedia.error.NetworkError
+import ru.netology.nmedia.error.UnknownError
 import java.io.File
 import javax.inject.Inject
 
@@ -46,19 +50,21 @@ class PostRepositoryImpl @Inject constructor(
 
     //плэйсхолдеры отключены для упрощения демонстрации Paging
     @OptIn(ExperimentalPagingApi::class)
-    override val data: Flow<PagingData<Post>>  = Pager(
+    override val data: Flow<PagingData<Post>> = Pager(
         config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-        pagingSourceFactory = {postDao.getPagingSource()},
+        pagingSourceFactory = { postDao.getPagingSource() },
         remoteMediator = PostRemoteMediator(
             apiService = apiService,
             postDao = postDao,
             postRemoteKeyDao = postRemoteKeyDao,
             appDb = appDb,
-            )
+        )
     ).flow
         .map {
             it.map(PostEntity::toDto)
         }
+
+    override val newerPostId: Flow<Long?> = postDao.max()
 
     //Для отслеживания кодов ошибок
     private var responseErrMess: Pair<Int, String> = Pair(0, "")
@@ -119,8 +125,28 @@ class PostRepositoryImpl @Inject constructor(
             emit(body.size)
         }
     }
-        .catch { throw UnknownError } //Репозиторий может выбрасывать исключения, но их тогда нужно обрабатывать во вьюмодели, тоже в кэтче флоу
+        .catch { throw AppError.from(it) } //Репозиторий может выбрасывать исключения, но их тогда нужно обрабатывать во вьюмодели, тоже в кэтче флоу
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getNewerCount(): Flow<Long> = postDao.max()
+        .flatMapLatest {
+            if (it != null) {
+                flow {
+                while (true) {
+                    delay(10_000L)
+                    val response = apiService.getNewerCount(it)
+                    val body = response.body()
+                    emit(body?.count ?:0)
+                }
+            }
+        } else
+            { emptyFlow()
+            }
+        }
+        .catch {
+            e->
+                    throw AppError.from(e)
+        }
 
     override suspend fun switchNewOnShowed(): Boolean {
         postDao.showedSwitch()
@@ -149,7 +175,7 @@ class PostRepositoryImpl @Inject constructor(
             responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
-        getAll()
+//        getAll()
     }
 
     suspend fun saveOnServerCheck() {
@@ -277,4 +303,5 @@ class PostRepositoryImpl @Inject constructor(
             throw UnknownError
         }
     }
+
 }

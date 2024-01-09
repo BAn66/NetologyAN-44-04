@@ -5,7 +5,6 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import retrofit2.HttpException
 import ru.netologia.nmedia.api.ApiService
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.dao.PostRemoteKeyDao
@@ -13,7 +12,7 @@ import ru.netologia.nmedia.db.AppDb
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.PostRemoteKeyEntity
 import ru.netologia.nmedia.entity.toEntity
-import ru.netologia.nmedia.error.ApiError
+import ru.netology.nmedia.error.ApiError
 import java.io.IOException
 
 @OptIn(ExperimentalPagingApi::class)
@@ -30,15 +29,20 @@ class PostRemoteMediator(
         try {
             val response = when (loadType) {
                 LoadType.REFRESH -> { //обработка рефреша
-                    apiService.getLatest(state.config.initialLoadSize)
+                    if(postDao.isEmpty()) {
+                        val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
+                        apiService.getAfter(id, state.config.pageSize)
+                    } else {
+                        apiService.getLatest(state.config.initialLoadSize)
+                    }
                 }
 
-                LoadType.PREPEND ->
-                    null
-//                { //Обработка скролла вверх(новая страница не будет загружаться, мы сделали специально. Так в большинстве приложений сейчас)
+                LoadType.PREPEND -> { //Обработка скролла вверх(новая страница не будет загружаться, мы сделали специально.
+                    // Так в большинстве приложений сейчас)
+                    return MediatorResult.Success(true) //Для д/з
 //                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
 //                    apiService.getAfter(id, state.config.pageSize)
-//                }
+                }
 
                 LoadType.APPEND -> {//Обработка скролла вниз
                     val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(false)
@@ -46,56 +50,64 @@ class PostRemoteMediator(
                 }
             }
 
-//            if (!response.isSuccessful) {
-//                throw HttpException(response)
-//            }
-
-            if (!response?.isSuccessful!!) {
-                throw HttpException(response)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
             }
-            val body = response.body() ?: throw ApiError(
-                response.code(),
-                response.message(),
-            )
+
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
 
             //заполняем базу ключей данными которые приходят из сети используя транзакции
             appDb.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        postRemoteKeyDao.clear()
-                        postRemoteKeyDao.insert(
-                            listOf(
+//                        postRemoteKeyDao.clear()
+                        if(postDao.isEmpty()){
+                            postRemoteKeyDao.insert(
+                                listOf(
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.AFTER,
+                                        body.first().id
+                                    ),
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.BEFORE,
+                                        body.last().id
+
+                                    )
+                                )
+                            )
+                        }
+                        else{
+                            postRemoteKeyDao.insert(
                                 PostRemoteKeyEntity(
                                     PostRemoteKeyEntity.KeyType.AFTER,
                                     body.first().id
-                                ),
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.BEFORE,
-                                    body.last().id
-                                ),
+                                )
                             )
-                        )
-                        postDao.clear()
+                        }
+                    //postDao.clear()
                     }
 
-                    LoadType.PREPEND -> {//Обработка скролла вверх
-                        postRemoteKeyDao.insert(
-                            PostRemoteKeyEntity(
-                                PostRemoteKeyEntity.KeyType.AFTER,
-                                body.first().id
-                            )
-                        )
-                    }
+//                    LoadType.PREPEND ->   //ветка недостижима из за верхних изменений препенда
+//                    {//Обработка скролла вверх
+//                        postRemoteKeyDao.insert(
+//                            PostRemoteKeyEntity(
+//                                PostRemoteKeyEntity.KeyType.AFTER,
+//                                body.first().id
+//                            )
+//                        )
+//                    }
+
 
                     LoadType.APPEND -> {//Обработка скролла вниз
+
                         postRemoteKeyDao.insert(
                             PostRemoteKeyEntity(
                                 PostRemoteKeyEntity.KeyType.BEFORE,
                                 body.last().id
                             )
-
                         )
                     }
+                    else -> Unit
                 }
                 postDao.insert(body.toEntity())
             }

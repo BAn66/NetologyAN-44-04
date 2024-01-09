@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.map
@@ -12,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -46,7 +44,7 @@ class PostViewModel @Inject constructor(
 
     var haveNew: Boolean = false //маркер для всплывашки "Обновить"
 
-    private var maxId = MutableStateFlow(0L) //Для получения максимального id из текущего списка
+//    private var maxId = MutableStateFlow(0L) //Для получения максимального id из текущего списка
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val data: Flow<PagingData<Post>> = appAuth
@@ -55,7 +53,7 @@ class PostViewModel @Inject constructor(
             repository.data
                 .map { pagingData ->
                     pagingData.map { post ->
-                        maxId.value = maxOf(post.id, maxId.value)// сравнение текущего макс.ид и ид в паггинге
+//                        maxId.value = maxOf(post.id, maxId.value)// сравнение текущего макс.ид и ид в паггинге
                         post.copy(ownedByMe = auth.id == post.authorId)
                     }
                 }
@@ -65,10 +63,13 @@ class PostViewModel @Inject constructor(
         }
         .flowOn(Dispatchers.Default)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val newerCount = maxId.flatMapLatest { id ->
-        repository.getNewer(id)
-    }.asLiveData(Dispatchers.Default)
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    val newerCount = maxId.flatMapLatest { id ->
+//        repository.newerPostId
+//    }.asLiveData(Dispatchers.Default)
+
+    val newerCount = repository.getNewerCount()
+//        .asLiveData()
 
     private val _photo = MutableLiveData<PhotoModel?>(null)  //Для картинок
     val photo: LiveData<PhotoModel?>
@@ -92,7 +93,7 @@ class PostViewModel @Inject constructor(
         try {
             _dataState.value = FeedModelState(loading = true)
             haveNew = repository.switchNewOnShowed()
-            repository.getAll()
+//            repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             errorMessage = repository.getErrMess()

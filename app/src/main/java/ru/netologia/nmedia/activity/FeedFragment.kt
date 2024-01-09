@@ -18,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
@@ -39,6 +40,7 @@ class FeedFragment : Fragment() {
     lateinit var appAuth: AppAuth
 
     private val viewModel: PostViewModel by activityViewModels()
+//    private var maxId = MutableStateFlow(0L)
 
     fun toastErrMess(state: FeedModelState) {
         if (state.error) {
@@ -48,7 +50,9 @@ class FeedFragment : Fragment() {
 
                 Snackbar.LENGTH_LONG
             )
-                .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                .setAction(R.string.retry_loading) {
+                    viewModel.loadPosts()
+                }
                 .show()
         }
     }
@@ -70,12 +74,12 @@ class FeedFragment : Fragment() {
 
             override fun remove(post: Post) {
                 viewModel.removeById(post.id)
-                viewModel.loadPosts() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+//                viewModel.loadPosts() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
             }
 
             override fun edit(post: Post) {
                 viewModel.edit(post)
-                viewModel.loadPosts()
+//                viewModel.loadPosts()
             }
 
             override fun openPost(post: Post) {
@@ -160,6 +164,8 @@ class FeedFragment : Fragment() {
 
 
 
+
+
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)
         viewModel.edited.observe(viewLifecycleOwner) { it ->// Начало редактирования
             val resultId = it.id
@@ -169,11 +175,36 @@ class FeedFragment : Fragment() {
             }
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) {
-            binding.showNew.isVisible =
-                it > 0 //Условия видимости можно сменить на it > 0, в таком случае плашка не будет отображаться когда новых постов нет.
-            println("$it posts add")
+
+
+        viewLifecycleOwner.lifecycleScope.launch { //проверка показа плашки "новые записи"
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.newerCount.collect {
+                    binding.showNew.isVisible =
+                        it > 0
+                    println("$it posts add")
+                }
+            }
         }
+
+        //        viewModel.newerCount //проверка показа плашки "новые записи" через getNewerCount
+//            .onEach{
+//                binding.showNew.isVisible =
+//                it > 0
+//                println("$it posts add")
+//            }. flowWithLifecycle(viewLifecycleOwner.lifecycle)
+//            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+//                viewLifecycleOwner.lifecycleScope.launch { //проверка показа плашки "новые записи"
+//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                viewModel.data.collectLatest {
+//                    it.map { post ->
+//                        binding.showNew.isVisible = maxId.value < post.id
+//                        maxId.value = maxOf(post.id, maxId.value)
+//                    }
+//                }
+//            }
+//        }
 
         binding.showNew.setOnClickListener {
             binding.showNew.isVisible = viewModel.haveNew

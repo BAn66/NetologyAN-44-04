@@ -53,6 +53,9 @@ interface PostDao {
     @Query("SELECT * FROM PostEntity WHERE id = :id")
     suspend fun getPostById(id: Long): PostEntity
 
+    @Query("SELECT MAX(id) FROM PostEntity")
+    fun max(): Flow<Long?>
+
     @Query("DELETE FROM PostEntity")
     suspend fun clear()
 }

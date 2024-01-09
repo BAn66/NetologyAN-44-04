@@ -13,6 +13,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import ru.netologia.nmedia.dto.NewerCount
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.dto.PushToken
 import ru.netologia.nmedia.dto.Token
@@ -27,6 +28,9 @@ interface ApiService {
 
     @GET("posts/{id}/newer")
     suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
+
+    @GET("posts/{id}/newer-count")
+    suspend fun getNewerCount(@Path("id") id: Long): Response<NewerCount> //присылает количество появившихся новых постов
 
     @GET("posts/{id}/before") //Загружает посты до
     suspend fun getBefore(@Path("id") id: Long, @Query("count") count: Int): Response<List<Post>>
