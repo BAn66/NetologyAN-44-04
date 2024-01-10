@@ -11,7 +11,7 @@ import ru.netologia.nmedia.entity.PostEntity
 @Dao
 interface PostDao {
     @Query("SELECT * FROM PostEntity WHERE showed = 1 ORDER BY id DESC")
-    fun getAll(): Flow<List<PostEntity>>
+    fun getAllFromDb(): Flow<List<PostEntity>>
 
     @Query("SELECT * FROM PostEntity WHERE showed = 1 ORDER BY id DESC")
     fun getPagingSource(): PagingSource<Int, PostEntity>

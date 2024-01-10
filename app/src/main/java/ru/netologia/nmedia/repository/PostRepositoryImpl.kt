@@ -51,7 +51,7 @@ class PostRepositoryImpl @Inject constructor(
     //плэйсхолдеры отключены для упрощения демонстрации Paging
     @OptIn(ExperimentalPagingApi::class)
     override val data: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(pageSize = 10, enablePlaceholders = false),
+        config = PagingConfig(pageSize = 10, enablePlaceholders = true),
         pagingSourceFactory = { postDao.getPagingSource() },
         remoteMediator = PostRemoteMediator(
             apiService = apiService,
@@ -180,7 +180,7 @@ class PostRepositoryImpl @Inject constructor(
 
     suspend fun saveOnServerCheck() {
         try {
-            for (postEntity: PostEntity in postDao.getAll()
+            for (postEntity: PostEntity in postDao.getAllFromDb()
                 .asLiveData(Dispatchers.Default)
                 .value ?: emptyList()
             ) {
