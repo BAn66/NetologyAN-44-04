@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.auth.AppAuth
+import ru.netologia.nmedia.dto.FeedItem
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.model.PhotoModel
@@ -36,25 +37,30 @@ private val empty = Post(
     likes = 0,
     attachment = null
 )
+
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
     appAuth: AppAuth
-):ViewModel(){
+) : ViewModel() {
 
     var haveNew: Boolean = false //маркер для всплывашки "Обновить"
 
 //    private var maxId = MutableStateFlow(0L) //Для получения максимального id из текущего списка
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val data: Flow<PagingData<Post>> = appAuth
+    val data: Flow<PagingData<FeedItem>> = appAuth
         .authStateFlow
-        .flatMapLatest {auth ->
+        .flatMapLatest { auth ->
             repository.data
                 .map { pagingData ->
                     pagingData.map { post ->
+                        if (post is Post) {
 //                        maxId.value = maxOf(post.id, maxId.value)// сравнение текущего макс.ид и ид в паггинге
-                        post.copy(ownedByMe = auth.id == post.authorId)
+                            post.copy(ownedByMe = auth.id == post.authorId)
+                        } else {
+                            post
+                        }
                     }
                 }
                 .catch {

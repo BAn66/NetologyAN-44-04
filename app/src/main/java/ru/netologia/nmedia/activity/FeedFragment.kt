@@ -65,7 +65,7 @@ class FeedFragment : Fragment() {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
 
-        val adapter = PostsAdapter(object : OnIteractionLister {
+        val adapter = PostsAdapter(object : OnIteractionLister{
 
 
             override fun like(post: Post) {

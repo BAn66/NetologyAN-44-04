@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentNewPostBinding
+import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.util.AndroidUtils.focusAndShowKeyboard
 import ru.netologia.nmedia.util.AndroidUtils.toList
 import ru.netologia.nmedia.util.StringArg
@@ -97,9 +98,9 @@ class NewPostFragment : Fragment() {
             if (resultId != 0L) {
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        val resultPost =
-                            viewModel.data.single().toList()
-                                .filter { it -> it.id == resultId }[0].copy()
+                        val resultPost = (viewModel.data.single().toList()
+                            .filter { it -> it.id == resultId }[0] as? Post)!!
+                            .copy()
                         viewModel.edit(resultPost)
                         binding.editTextNewPost.setText(resultPost.content)
                         //todo добавить загрузку картинки при редактировании картинки
@@ -115,9 +116,9 @@ class NewPostFragment : Fragment() {
             if (resultId2 != 0L) {
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        val resultPost =
-                            viewModel.data.single().toList()
-                                .filter { it -> it.id == resultId2 }[0].copy()
+                        val resultPost = (viewModel.data.single().toList()
+                                .filter { it -> it.id == resultId2 }[0] as? Post)!!
+                            .copy()
                         viewModel.edit(resultPost)
                         binding.editTextNewPost.setText(resultPost.content)
                         //todo добавить загрузку картинки при редактировании картинки

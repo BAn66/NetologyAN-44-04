@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentImageBinding
+import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.util.AndroidUtils.toList
 import ru.netologia.nmedia.viewmodel.PostViewModel
 
@@ -41,7 +42,8 @@ class ImageFragment: Fragment (){
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     val listOnePost =
-                        viewModel.data.single().toList().filter { it -> it.id == result }[0].copy()
+                        (viewModel.data.single().toList().filter { it -> it.id == result }[0] as Post)!!
+                            .copy()
                     if (listOnePost.attachment != null) {
                         val urlImages = "http://10.0.2.2:9999/media/${listOnePost.attachment.url}"
                         binding.imageFromPost.contentDescription = listOnePost.attachment.url

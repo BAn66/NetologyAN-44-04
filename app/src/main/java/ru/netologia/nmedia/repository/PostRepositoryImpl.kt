@@ -5,6 +5,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.insertSeparators
 import androidx.paging.map
 
 import ru.netologia.nmedia.dto.Post
@@ -26,7 +27,9 @@ import ru.netologia.nmedia.api.ApiService
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.dao.PostRemoteKeyDao
 import ru.netologia.nmedia.db.AppDb
+import ru.netologia.nmedia.dto.Ad
 import ru.netologia.nmedia.dto.Attachment
+import ru.netologia.nmedia.dto.FeedItem
 import ru.netologia.nmedia.dto.Token
 import ru.netologia.nmedia.entity.PostEntity
 import ru.netologia.nmedia.entity.toEntity
@@ -38,6 +41,7 @@ import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.File
+import java.util.Random
 import javax.inject.Inject
 
 
@@ -50,7 +54,7 @@ class PostRepositoryImpl @Inject constructor(
 
     //плэйсхолдеры отключены для упрощения демонстрации Paging
     @OptIn(ExperimentalPagingApi::class)
-    override val data: Flow<PagingData<Post>> = Pager(
+    override val data: Flow<PagingData<FeedItem>> = Pager(
         config = PagingConfig(pageSize = 10, enablePlaceholders = true),
         pagingSourceFactory = { postDao.getPagingSource() },
         remoteMediator = PostRemoteMediator(
@@ -60,8 +64,15 @@ class PostRepositoryImpl @Inject constructor(
             appDb = appDb,
         )
     ).flow
-        .map {
-            it.map(PostEntity::toDto)
+        .map { pagingData ->
+            pagingData.map(PostEntity::toDto)
+                .insertSeparators { previous, _ ->  //Реализация вставки рекламы. Динамическое появление рекламы
+                    if (previous?.id?.rem(5) == 0L){
+                        Ad(Random().nextLong(), "figma.jpg")
+                    } else {
+                        null
+                    }
+                }
         }
 
     override val newerPostId: Flow<Long?> = postDao.max()
@@ -132,20 +143,19 @@ class PostRepositoryImpl @Inject constructor(
         .flatMapLatest {
             if (it != null) {
                 flow {
-                while (true) {
-                    delay(10_000L)
-                    val response = apiService.getNewerCount(it)
-                    val body = response.body()
-                    emit(body?.count ?:0)
+                    while (true) {
+                        delay(10_000L)
+                        val response = apiService.getNewerCount(it)
+                        val body = response.body()
+                        emit(body?.count ?: 0)
+                    }
                 }
-            }
-        } else
-            { emptyFlow()
+            } else {
+                emptyFlow()
             }
         }
-        .catch {
-            e->
-                    throw AppError.from(e)
+        .catch { e ->
+            throw AppError.from(e)
         }
 
     override suspend fun switchNewOnShowed(): Boolean {
