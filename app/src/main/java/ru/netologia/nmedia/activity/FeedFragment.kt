@@ -27,6 +27,7 @@ import ru.netologia.nmedia.databinding.FragmentFeedBinding
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
+import ru.netologia.nmedia.viewmodel.PostLoadingStateAdapter
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
 import javax.inject.Inject
@@ -97,7 +98,14 @@ class FeedFragment : Fragment() {
             }
         })
 
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostLoadingStateAdapter{
+              adapter.retry()
+            },
+            footer = PostLoadingStateAdapter {
+                adapter.retry()
+            }
+        )
 
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
