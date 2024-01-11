@@ -8,13 +8,17 @@ import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentImageBinding
+import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.util.AndroidUtils.toList
 import ru.netologia.nmedia.viewmodel.PostViewModel
 
@@ -34,23 +38,27 @@ class ImageFragment: Fragment (){
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val result = bundle.getLong("id")
 
-            lifecycleScope.launchWhenCreated {
-                val listOnePost =
-                    viewModel.data.single().toList().filter { it -> it.id == result }[0].copy()
-                if (listOnePost.attachment != null) {
-                    val urlImages = "http://10.0.2.2:9999/media/${listOnePost.attachment.url}"
-                    binding.imageFromPost.contentDescription = listOnePost.attachment.url
 
-                    Glide.with(binding.imageFromPost)
-                        .load(urlImages)
-                        .placeholder(R.drawable.ic_loading_100dp)
-                        .error(R.drawable.ic_error_100dp)
-                        .timeout(10_000)
-                        .into(binding.imageFromPost)
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    val listOnePost =
+                        (viewModel.data.single().toList().filter { it -> it.id == result }[0] as Post)!!
+                            .copy()
+                    if (listOnePost.attachment != null) {
+                        val urlImages = "http://10.0.2.2:9999/media/${listOnePost.attachment.url}"
+                        binding.imageFromPost.contentDescription = listOnePost.attachment.url
+
+                        Glide.with(binding.imageFromPost)
+                            .load(urlImages)
+                            .placeholder(R.drawable.ic_loading_100dp)
+                            .error(R.drawable.ic_error_100dp)
+                            .timeout(10_000)
+                            .into(binding.imageFromPost)
+                    }
+                    binding.btnLike.text = eraseZero(listOnePost.likes.toLong())
+                    binding.btnShare.text = "5"
+                    binding.btnViews.text = "5"
                 }
-                binding.btnLike.text = eraseZero(listOnePost.likes.toLong())
-                binding.btnShare.text = "5"
-                binding.btnViews.text = "5"
             }
         }
 

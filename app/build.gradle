@@ -7,11 +7,11 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'dagger.hilt.android.plugin'
+apply plugin: 'kotlin-kapt'
 
-//1
+//2
 
 android {
     namespace 'ru.netologia.nmedia'
@@ -42,6 +42,8 @@ android {
         debug {
             manifestPlaceholders.usesClearTextTraffic = true
             buildConfigField "String", "BASE_URL", '"http://10.0.2.2:9999"'
+//            buildConfigField "String", "BASE_URL", '"http://192.168.0.2:9999"' //Для телефона
+//            buildConfigField "String", "BASE_URL", '"http://127.0.0.1:9999"' //Для телефона
         }
     }
     compileOptions {
@@ -120,6 +122,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     kapt "androidx.room:room-compiler:$room_version" //для room
+    implementation "androidx.room:room-paging:2.6.1" //для room with Pagging3
     implementation "com.github.dhaval2404:imagepicker:$imagepicker_version"    //для работы с картинками
 
 }

@@ -11,12 +11,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
@@ -36,6 +40,7 @@ class FeedFragment : Fragment() {
     lateinit var appAuth: AppAuth
 
     private val viewModel: PostViewModel by activityViewModels()
+//    private var maxId = MutableStateFlow(0L)
 
     fun toastErrMess(state: FeedModelState) {
         if (state.error) {
@@ -45,7 +50,9 @@ class FeedFragment : Fragment() {
 
                 Snackbar.LENGTH_LONG
             )
-                .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                .setAction(R.string.retry_loading) {
+                    viewModel.loadPosts()
+                }
                 .show()
         }
     }
@@ -58,7 +65,7 @@ class FeedFragment : Fragment() {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
 
-        val adapter = PostsAdapter(object : OnIteractionLister {
+        val adapter = PostsAdapter(object : OnIteractionLister{
 
 
             override fun like(post: Post) {
@@ -67,12 +74,12 @@ class FeedFragment : Fragment() {
 
             override fun remove(post: Post) {
                 viewModel.removeById(post.id)
-                viewModel.loadPosts() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
+//                viewModel.loadPosts() // не забываем обновить значения вью модели (запрос с сервера и загрузка к нам)
             }
 
             override fun edit(post: Post) {
                 viewModel.edit(post)
-                viewModel.loadPosts()
+//                viewModel.loadPosts()
             }
 
             override fun openPost(post: Post) {
@@ -98,18 +105,36 @@ class FeedFragment : Fragment() {
             toastErrMess(state)
         }
 
-        lifecycleScope.launchWhenCreated { //После paging
-            viewModel.data.collectLatest {
-                adapter.submitData(it)
+//        lifecycleScope.launchWhenCreated { //После paging
+//            viewModel.data.collectLatest {
+//                adapter.submitData(it)
+//            }
+//        }
+        //Актуальный вариант
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.data.collectLatest(adapter::submitData)
             }
         }
 
-        lifecycleScope.launchWhenCreated {// Обновляшка по свайпу //c Paging
-            adapter.loadStateFlow.collectLatest {
-                binding.swiperefresh.isRefreshing =
-                it.refresh is LoadState.Loading
-                        || it.append is LoadState.Loading
-                        || it.prepend is LoadState.Loading
+//        lifecycleScope.launchWhenCreated {// Обновляшка по свайпу //c Paging
+//            adapter.loadStateFlow.collectLatest {
+//                binding.swiperefresh.isRefreshing =
+//                it.refresh is LoadState.Loading
+//                        || it.append is LoadState.Loading
+//                        || it.prepend is LoadState.Loading
+//            }
+//        }
+
+        // Актуальный вариант
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                adapter.loadStateFlow.collectLatest { state ->
+                    binding.swiperefresh.isRefreshing =
+                        state.refresh is LoadState.Loading ||
+                                state.prepend is LoadState.Loading ||
+                                state.append is LoadState.Loading
+                }
             }
         }
 
@@ -121,12 +146,24 @@ class FeedFragment : Fragment() {
             adapter.refresh()
         }
 
-        lifecycleScope.launchWhenCreated {
-            appAuth.authStateFlow.collectLatest {
-                Log.d("REFRESH", "я обновил")
-                adapter.refresh()
+//        lifecycleScope.launchWhenCreated {
+//            appAuth.authStateFlow.collectLatest {
+//                Log.d("REFRESH", "я обновил")
+//                adapter.refresh()
+//            }
+//        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appAuth.authStateFlow.collectLatest {
+                    Log.d("REFRESH", "я обновил")
+                    adapter.refresh()
+                }
             }
         }
+
+
+
 
 
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)
@@ -138,11 +175,36 @@ class FeedFragment : Fragment() {
             }
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) {
-            binding.showNew.isVisible =
-                it > 0 //Условия видимости можно сменить на it > 0, в таком случае плашка не будет отображаться когда новых постов нет.
-            println("$it posts add")
+
+
+        viewLifecycleOwner.lifecycleScope.launch { //проверка показа плашки "новые записи"
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.newerCount.collect {
+                    binding.showNew.isVisible =
+                        it > 0
+                    println("$it posts add")
+                }
+            }
         }
+
+        //        viewModel.newerCount //проверка показа плашки "новые записи" через getNewerCount
+//            .onEach{
+//                binding.showNew.isVisible =
+//                it > 0
+//                println("$it posts add")
+//            }. flowWithLifecycle(viewLifecycleOwner.lifecycle)
+//            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+//                viewLifecycleOwner.lifecycleScope.launch { //проверка показа плашки "новые записи"
+//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                viewModel.data.collectLatest {
+//                    it.map { post ->
+//                        binding.showNew.isVisible = maxId.value < post.id
+//                        maxId.value = maxOf(post.id, maxId.value)
+//                    }
+//                }
+//            }
+//        }
 
         binding.showNew.setOnClickListener {
             binding.showNew.isVisible = viewModel.haveNew
