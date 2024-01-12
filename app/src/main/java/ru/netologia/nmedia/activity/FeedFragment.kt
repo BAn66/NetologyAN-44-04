@@ -66,7 +66,7 @@ class FeedFragment : Fragment() {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
 
-        val adapter = PostsAdapter(object : OnIteractionLister{
+        val adapter = PostsAdapter(object : OnIteractionLister {
 
 
             override fun like(post: Post) {
@@ -98,20 +98,21 @@ class FeedFragment : Fragment() {
             }
         })
 
-        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
-            header = PostLoadingStateAdapter{
-              adapter.retry()
-            },
-            footer = PostLoadingStateAdapter {
-                adapter.retry()
-            }
-        )
+        binding.list.adapter = adapter
+//            .withLoadStateHeaderAndFooter(
+//            header = PostLoadingStateAdapter {
+//                adapter.retry()
+//            },
+//            footer = PostLoadingStateAdapter {
+//                adapter.retry()
+//            }
+//        )
 
-        viewModel.dataState.observe(viewLifecycleOwner) { state ->
-            binding.progress.isVisible = state.loading
-            binding.swiperefresh.isRefreshing = state.refreshing
-            toastErrMess(state)
-        }
+//        viewModel.dataState.observe(viewLifecycleOwner) { state ->
+//            binding.progress.isVisible = state.loading
+//            binding.swiperefresh.isRefreshing = state.refreshing
+//            toastErrMess(state)
+//        }
 
 //        lifecycleScope.launchWhenCreated { //После paging
 //            viewModel.data.collectLatest {
@@ -138,13 +139,33 @@ class FeedFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collectLatest { state ->
-                    binding.swiperefresh.isRefreshing =
-                        state.refresh is LoadState.Loading ||
-                                state.prepend is LoadState.Loading ||
-                                state.append is LoadState.Loading
+                    binding.swiperefresh.isRefreshing = state.refresh is LoadState.Loading
+                    if (state.prepend is LoadState.Loading) {
+                        binding.list.adapter = adapter.withLoadStateHeader(
+                            header = PostLoadingStateAdapter {
+                                adapter.retry()
+                            }
+                        )
+                    }
+                    if (state.append is LoadState.Loading) {
+                        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+                            header = PostLoadingStateAdapter {
+                                adapter.retry()
+                            },
+                            footer = PostLoadingStateAdapter {
+                                adapter.retry()
+                            }
+                        )
+                    }
+//                    binding.swiperefresh.isRefreshing =
+//                        state.refresh is LoadState.Loading ||
+//                                state.prepend is LoadState.Loading ||
+//                                state.append is LoadState.Loading
                 }
             }
         }
+
+
 
         binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу //c Paging
             adapter.refresh()
@@ -169,9 +190,6 @@ class FeedFragment : Fragment() {
                 }
             }
         }
-
-
-
 
 
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)
