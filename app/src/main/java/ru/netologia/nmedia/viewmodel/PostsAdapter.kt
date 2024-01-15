@@ -36,7 +36,9 @@ class PostsAdapter(
         when (getItem(position)) {
             is Ad -> R.layout.card_ad
             is Post -> R.layout.card_post
-            null -> error("Unknown item type")
+//            null -> error("Unknown item type")
+//            null -> R.layout.card_post
+            else -> R.layout.card_post
         }
 
 
@@ -62,7 +64,8 @@ class PostsAdapter(
         when (val item = getItem(position)) {
             is Ad -> (holder as? AdViewHolder)?.bind(item)
             is Post -> (holder as? PostViewHolder)?.bind(item)
-            null -> error("Unknown item type")
+//            null -> Unit
+            else -> Unit
         }
     }
 }

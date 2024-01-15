@@ -98,15 +98,24 @@ class FeedFragment : Fragment() {
             }
         })
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            adapter.loadStateFlow.collect { loadState ->
+                if (loadState.prepend is LoadState.Loading){
+                    binding.list.adapter = adapter.withLoadStateHeader(header = PostLoadingStateAdapter {
+                        adapter.retry()
+                    })
+
+                }
+            }
+        }
+
         binding.list.adapter = adapter
-//            .withLoadStateHeaderAndFooter(
-//            header = PostLoadingStateAdapter {
-//                adapter.retry()
-//            },
-//            footer = PostLoadingStateAdapter {
-//                adapter.retry()
-//            }
-//        )
+                    .withLoadStateFooter(
+            footer = PostLoadingStateAdapter {
+                adapter.retry()
+            }
+        )
+
 
 //        viewModel.dataState.observe(viewLifecycleOwner) { state ->
 //            binding.progress.isVisible = state.loading
@@ -139,28 +148,10 @@ class FeedFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collectLatest { state ->
-                    binding.swiperefresh.isRefreshing = state.refresh is LoadState.Loading
-                    if (state.prepend is LoadState.Loading) {
-                        binding.list.adapter = adapter.withLoadStateHeader(
-                            header = PostLoadingStateAdapter {
-                                adapter.retry()
-                            }
-                        )
-                    }
-                    if (state.append is LoadState.Loading) {
-                        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
-                            header = PostLoadingStateAdapter {
-                                adapter.retry()
-                            },
-                            footer = PostLoadingStateAdapter {
-                                adapter.retry()
-                            }
-                        )
-                    }
-//                    binding.swiperefresh.isRefreshing =
-//                        state.refresh is LoadState.Loading ||
-//                                state.prepend is LoadState.Loading ||
-//                                state.append is LoadState.Loading
+                    binding.swiperefresh.isRefreshing =
+                        state.refresh is LoadState.Loading ||
+                                state.prepend is LoadState.Loading ||
+                                state.append is LoadState.Loading
                 }
             }
         }
@@ -212,6 +203,7 @@ class FeedFragment : Fragment() {
                 }
             }
         }
+
 
         //        viewModel.newerCount //проверка показа плашки "новые записи" через getNewerCount
 //            .onEach{
@@ -276,3 +268,4 @@ class FeedFragment : Fragment() {
         println("onDestroy $this")
     }
 }
+

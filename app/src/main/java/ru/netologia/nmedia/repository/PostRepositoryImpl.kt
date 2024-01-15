@@ -5,6 +5,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.insertHeaderItem
 import androidx.paging.insertSeparators
 import androidx.paging.map
 
@@ -287,7 +288,7 @@ class PostRepositoryImpl @Inject constructor(
             responseErrMess = Pair(UnknownError.code.toInt(), UnknownError.message.toString())
             throw UnknownError
         }
-        getAll()
+//        getAll()
     }
 
     private suspend fun saveMediaOnServer(file: File): Response<Media> {

@@ -29,6 +29,10 @@ data class Ad( //Реклама
     val image: String,
 ) : FeedItem
 
+data class Loading(
+    override val id: Long) //Процесс загрузки
+ : FeedItem
+
 
 data class Attachment(
     val url: String ,
