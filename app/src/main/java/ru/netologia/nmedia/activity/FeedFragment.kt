@@ -27,6 +27,7 @@ import ru.netologia.nmedia.databinding.FragmentFeedBinding
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.model.FeedModelState
 import ru.netologia.nmedia.viewmodel.OnIteractionLister
+import ru.netologia.nmedia.viewmodel.PostLoadingStateAdapter
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
 import javax.inject.Inject
@@ -65,7 +66,7 @@ class FeedFragment : Fragment() {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
 
-        val adapter = PostsAdapter(object : OnIteractionLister{
+        val adapter = PostsAdapter(object : OnIteractionLister {
 
 
             override fun like(post: Post) {
@@ -97,13 +98,39 @@ class FeedFragment : Fragment() {
             }
         })
 
-        binding.list.adapter = adapter
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            adapter.loadStateFlow.collect { loadState ->
+//                if (loadState.prepend is LoadState.Loading){
+//                    binding.list.adapter = adapter.withLoadStateHeader(header = PostLoadingStateAdapter {
+//                        adapter.retry()
+//                    })
+//
+//                }
+//            }
+//        }
+//
+//        binding.list.adapter = adapter
+//                    .withLoadStateFooter(
+//            footer = PostLoadingStateAdapter {
+//                adapter.retry()
+//            }
+//        )
 
-        viewModel.dataState.observe(viewLifecycleOwner) { state ->
-            binding.progress.isVisible = state.loading
-            binding.swiperefresh.isRefreshing = state.refreshing
-            toastErrMess(state)
-        }
+        binding.list.adapter = adapter
+                    .withLoadStateHeaderAndFooter(
+            footer = PostLoadingStateAdapter {
+                adapter.retry()
+            },
+            header = PostLoadingStateAdapter {
+                adapter.retry()
+            }
+        )
+
+//        viewModel.dataState.observe(viewLifecycleOwner) { state ->
+//            binding.progress.isVisible = state.loading
+//            binding.swiperefresh.isRefreshing = state.refreshing
+//            toastErrMess(state)
+//        }
 
 //        lifecycleScope.launchWhenCreated { //После paging
 //            viewModel.data.collectLatest {
@@ -131,12 +158,14 @@ class FeedFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collectLatest { state ->
                     binding.swiperefresh.isRefreshing =
-                        state.refresh is LoadState.Loading ||
-                                state.prepend is LoadState.Loading ||
-                                state.append is LoadState.Loading
+                        state.refresh is LoadState.Loading
+//                                || state.prepend is LoadState.Loading ||
+//                                state.append is LoadState.Loading
                 }
             }
         }
+
+
 
         binding.swiperefresh.setOnRefreshListener { // Обновляшка по свайпу //c Paging
             adapter.refresh()
@@ -163,9 +192,6 @@ class FeedFragment : Fragment() {
         }
 
 
-
-
-
 //        Работа редактирования через фрагменты (конкретно все в фрагменте NewPost)
         viewModel.edited.observe(viewLifecycleOwner) { it ->// Начало редактирования
             val resultId = it.id
@@ -186,6 +212,7 @@ class FeedFragment : Fragment() {
                 }
             }
         }
+
 
         //        viewModel.newerCount //проверка показа плашки "новые записи" через getNewerCount
 //            .onEach{
@@ -250,3 +277,4 @@ class FeedFragment : Fragment() {
         println("onDestroy $this")
     }
 }
+

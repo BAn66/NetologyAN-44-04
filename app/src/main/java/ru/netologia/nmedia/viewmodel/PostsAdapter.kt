@@ -17,6 +17,8 @@ import ru.netologia.nmedia.dto.Ad
 import ru.netologia.nmedia.dto.FeedItem
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.enumeration.AttachmentType
+import java.text.SimpleDateFormat
+import java.util.Date
 
 interface OnIteractionLister {
     fun like(post: Post)
@@ -34,7 +36,9 @@ class PostsAdapter(
         when (getItem(position)) {
             is Ad -> R.layout.card_ad
             is Post -> R.layout.card_post
-            null -> error("Unknown item type")
+//            null -> error("Unknown item type")
+//            null -> R.layout.card_post
+            else -> R.layout.card_post
         }
 
 
@@ -60,7 +64,8 @@ class PostsAdapter(
         when (val item = getItem(position)) {
             is Ad -> (holder as? AdViewHolder)?.bind(item)
             is Post -> (holder as? PostViewHolder)?.bind(item)
-            null -> error("Unknown item type")
+//            null -> Unit
+            else -> Unit
         }
     }
 }
@@ -87,7 +92,7 @@ class PostViewHolder(
         binding.apply {
             author.text = post.author
 //            published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
-            published.text = post.id.toString()
+            published.text = "#${post.id.toString()} of ${SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))}"
             content.text = post.content
 
             val urlAvatar = "${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}"

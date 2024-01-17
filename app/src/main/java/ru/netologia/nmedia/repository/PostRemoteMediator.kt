@@ -5,6 +5,7 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import kotlinx.coroutines.delay
 import ru.netologia.nmedia.api.ApiService
 import ru.netologia.nmedia.dao.PostDao
 import ru.netologia.nmedia.dao.PostRemoteKeyDao
@@ -37,11 +38,11 @@ class PostRemoteMediator(
                     }
                 }
 
-                LoadType.PREPEND -> { //Обработка скролла вверх(новая страница не будет загружаться, мы сделали специально.
+                LoadType.PREPEND -> { //Обработка скролла вверх(новая страница не будет загружаться, мы сделали специально true препенд выключен, false препенд включен.
                     // Так в большинстве приложений сейчас)
-                    return MediatorResult.Success(true) //Для д/з
-//                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
-//                    apiService.getAfter(id, state.config.pageSize)
+                    delay(2500)
+                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
+                    apiService.getAfter(id, state.config.pageSize)
                 }
 
                 LoadType.APPEND -> {//Обработка скролла вниз
@@ -87,15 +88,15 @@ class PostRemoteMediator(
                     //postDao.clear()
                     }
 
-//                    LoadType.PREPEND ->   //ветка недостижима из за верхних изменений препенда
-//                    {//Обработка скролла вверх
-//                        postRemoteKeyDao.insert(
-//                            PostRemoteKeyEntity(
-//                                PostRemoteKeyEntity.KeyType.AFTER,
-//                                body.first().id
-//                            )
-//                        )
-//                    }
+                    LoadType.PREPEND ->   //ветка недостижима если отключить препенд наверху
+                    {//Обработка скролла вверх
+                        postRemoteKeyDao.insert(
+                            PostRemoteKeyEntity(
+                                PostRemoteKeyEntity.KeyType.AFTER,
+                                body.first().id
+                            )
+                        )
+                    }
 
 
                     LoadType.APPEND -> {//Обработка скролла вниз

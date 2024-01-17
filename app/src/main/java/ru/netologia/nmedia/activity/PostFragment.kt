@@ -31,13 +31,13 @@ import ru.netologia.nmedia.viewmodel.PostsAdapter
 
 @AndroidEntryPoint
 class PostFragment : Fragment() {
+    val viewModel: PostViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentPostBinding.inflate(layoutInflater)
-        val viewModel: PostViewModel by activityViewModels()
 
         val adapter = PostsAdapter(object : OnIteractionLister {
 
@@ -68,6 +68,8 @@ class PostFragment : Fragment() {
         binding.listPost.adapter = adapter
 
         //Получаем айди поста для заполнения данных
+
+        //TODO Реккомендуют вместо RecyclerView для отображения одного поста, можно добавить в репозиторий (и во вьюмодель) метод, который возвращал бы подписку на пост из базы данных по id.
         setFragmentResultListener("requestIdForPostFragment") { key, bundle ->
             // Здесь можно передать любой тип, поддерживаемый Bundle-ом
             val result = bundle.getLong("id")
