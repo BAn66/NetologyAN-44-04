@@ -92,7 +92,7 @@ class PostViewHolder(
         binding.apply {
             author.text = post.author
 //            published.text = SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))
-            published.text = "#${post.id.toString()} of ${SimpleDateFormat("yyyy.MM.dd HH:mm").format(Date(post.published))}"
+            published.text = "#${post.id.toString()} of ${post.published}"
             content.text = post.content
 
             val urlAvatar = "${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}"

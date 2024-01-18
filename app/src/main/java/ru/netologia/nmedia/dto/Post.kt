@@ -1,6 +1,7 @@
 package ru.netologia.nmedia.dto
 
 import ru.netologia.nmedia.enumeration.AttachmentType
+import java.time.OffsetDateTime
 
 sealed interface FeedItem { // интерфейс объединяющий рекламу и пост, sealde интерфейс ограниченный имеющий только две заданные нами реализации
     val id: Long
@@ -12,7 +13,7 @@ data class Post(
     val author: String = "",
     val authorAvatar: String = "",
     val content: String = "",
-    val published: Long = 0L,
+    val published: OffsetDateTime,
     val likedByMe: Boolean = false,
     val likes: Int = 0,
     val attachment: Attachment? = null,

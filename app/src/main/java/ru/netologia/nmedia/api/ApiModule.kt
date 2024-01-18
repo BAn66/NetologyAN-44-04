@@ -1,5 +1,9 @@
 package ru.netologia.nmedia.api
 
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,7 +15,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netologia.nmedia.BuildConfig
 import ru.netologia.nmedia.auth.AppAuth
-//import ru.netologia.nmedia.di.DependencyContainer
+import java.time.*
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -54,8 +60,21 @@ class ApiModule {
     fun provideRetrofit(
         clientOkHttp: OkHttpClient
     ): Retrofit = Retrofit.Builder()
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(clientOkHttp)
+        .addConverterFactory(GsonConverterFactory.create( //это для конвертации лонга в дату и обратно2
+            GsonBuilder().registerTypeAdapter(
+                OffsetDateTime :: class.java,
+                object : TypeAdapter<OffsetDateTime>(){
+                    override fun write(out: JsonWriter, value: OffsetDateTime?){
+                        out.value(value?.toEpochSecond())
+                    }
+                    override fun read(jsonReader: JsonReader): OffsetDateTime =
+                        OffsetDateTime.ofInstant(
+                            Instant.ofEpochSecond(jsonReader.nextLong())
+                            , ZoneId.systemDefault()
+                        )
+                }).create()
+        )
+        ).client(clientOkHttp)
         .baseUrl(BASE_URL)
         .build()
 

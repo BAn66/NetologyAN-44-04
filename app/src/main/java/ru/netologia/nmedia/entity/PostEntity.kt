@@ -5,6 +5,9 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.netologia.nmedia.dto.Attachment
 import ru.netologia.nmedia.dto.Post
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
 
 //Для ROOM
 @Entity
@@ -24,7 +27,12 @@ data class PostEntity(
     val showed: Boolean = true,
 ) {
     fun toDto() = Post(
-        id, authorId, author, authorAvatar, content, published, likedByMe, likes, attachment
+        id, authorId, author, authorAvatar, content,
+        OffsetDateTime.ofInstant(
+            Instant.ofEpochSecond(published)
+            , ZoneId.systemDefault()
+        ),
+        likedByMe, likes, attachment
     )
 
     companion object {
@@ -35,7 +43,7 @@ data class PostEntity(
                 postDto.author,
                 postDto.authorAvatar,
                 postDto.content,
-                postDto.published * 1000,
+                postDto.published.toEpochSecond(),
                 postDto.likedByMe,
                 postDto.likes,
                 postDto.attachment,

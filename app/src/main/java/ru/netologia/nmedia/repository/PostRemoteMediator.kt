@@ -40,7 +40,7 @@ class PostRemoteMediator(
 
                 LoadType.PREPEND -> { //Обработка скролла вверх(новая страница не будет загружаться, мы сделали специально true препенд выключен, false препенд включен.
                     // Так в большинстве приложений сейчас)
-                    delay(2500)
+//                    delay(2500)
                     val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(false)
                     apiService.getAfter(id, state.config.pageSize)
                 }

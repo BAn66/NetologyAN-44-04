@@ -24,6 +24,7 @@ import ru.netologia.nmedia.model.PhotoModel
 import ru.netologia.nmedia.repository.PostRepository
 import ru.netologia.nmedia.util.SingleLiveEvent
 import java.io.File
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 private val empty = Post(
@@ -31,7 +32,7 @@ private val empty = Post(
     author = "",
     authorId = 0L,
     authorAvatar = "",
-    published = 0L,
+    published = OffsetDateTime.now(),
     content = "",
     likedByMe = false,
     likes = 0,
@@ -114,7 +115,7 @@ class PostViewModel @Inject constructor(
             val postCopy = it.copy(
                 author = "me",
                 content = text,
-                published = System.currentTimeMillis(),
+                published = OffsetDateTime.now(),
             )
             viewModelScope.launch {
                 try {
