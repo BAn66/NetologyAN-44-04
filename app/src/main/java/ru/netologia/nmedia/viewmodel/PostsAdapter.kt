@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.BounceInterpolator
 import android.widget.ImageView
 import android.widget.PopupMenu
 import androidx.core.view.isVisible
@@ -22,10 +23,8 @@ import ru.netologia.nmedia.dto.Ad
 import ru.netologia.nmedia.dto.FeedItem
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.enumeration.AttachmentType
-import java.text.SimpleDateFormat
-import java.util.Date
 
-interface OnIteractionLister {
+interface OnInteractionListener {
     fun like(post: Post)
     fun remove(post: Post)
     fun edit(post: Post)
@@ -34,29 +33,29 @@ interface OnIteractionLister {
 }
 
 class PostsAdapter(
-    private val onIteractionLister: OnIteractionLister
+    private val onInteractionListener: OnInteractionListener
 ) : PagingDataAdapter<FeedItem, RecyclerView.ViewHolder>(PostDiffCallback()) {
 
-    override fun onBindViewHolder( //для исправления анимации мерцания RecylerView
-        holder: RecyclerView.ViewHolder,
-        position: Int,
-        payloads: MutableList<Any>
-    ) {
-
-        if (payloads.isEmpty()) {
-            onBindViewHolder(holder, position)
-        } else {
-            payloads.forEach {
-                (it as? PayLoad)?.let {
-                    when (val item = getItem(position)) {
-                        is Ad -> (holder as? AdViewHolder)?.bind(it)
-                        is Post -> (holder as? PostViewHolder)?.bind(it)
-                        else -> Unit
-                    }
-                }
-            }
-        }
-    }
+//    override fun onBindViewHolder( //для исправления анимации мерцания RecylerView
+//        holder: RecyclerView.ViewHolder,
+//        position: Int,
+//        payloads: MutableList<Any>
+//    ) {
+//
+//        if (payloads.isEmpty()) {
+//            onBindViewHolder(holder, position)
+//        } else {
+//            payloads.forEach {
+//                (it as? PayLoad)?.let {
+//                    when (val item = getItem(position)) {
+//                        is Ad -> (holder as? AdViewHolder)?.bind(it)
+//                        is Post -> (holder as? PostViewHolder)?.bind(it)
+//                        else -> Unit
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     override fun getItemViewType(position: Int): Int =
         when (getItem(position)) {
@@ -73,7 +72,7 @@ class PostsAdapter(
             R.layout.card_post -> {
                 val binding =
                     CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                PostViewHolder(binding, onIteractionLister)
+                PostViewHolder(binding, onInteractionListener)
             }
 
             R.layout.card_ad -> {
@@ -109,17 +108,18 @@ class AdViewHolder(
             .into(binding.imageAd)
     }
 
-    fun bind(payload: PayLoad) {//для исправления анимации мерцания RecylerView
-        payload.likedByMe?.let {
-        }
-        payload.content?.let {
-        }
-    }
+//    fun bind(payload: PayLoad) {//для исправления анимации мерцания RecylerView
+//        payload.likedByMe?.let {
+//        }
+//        payload.content?.let {
+//        }
+//    }
+
 }
 
 class PostViewHolder(
     private val binding: CardPostBinding,
-    private val onIteractionLister: OnIteractionLister
+    private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
     @SuppressLint("SetTextI18n")
     fun bind(post: Post) {
@@ -155,22 +155,33 @@ class PostViewHolder(
 
             btnLike.text = eraseZero(post.likes.toLong())
             btnLike.isChecked = post.likedByMe
-            btnLike.setOnClickListener {
-                println("like clicked")
-                onIteractionLister.like(post)
+//            btnLike.setOnClickListener {
+//                println("like clicked")
+//                onIteractionLister.like(post)
+//            }
+
+            btnLike.setOnClickListener {//анимация лайка
+                val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1F, 1.25F, 1F)
+                val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1F, 1.25F, 1F)
+                ObjectAnimator.ofPropertyValuesHolder(it, scaleX, scaleY).apply {
+                    duration = 500
+//                    repeatCount = 100
+                    interpolator = BounceInterpolator()
+                }.start()
+                onInteractionListener.like(post)
             }
 
             content.setOnClickListener {
                 println("content clicked")
-                onIteractionLister.openPost(post)
+                onInteractionListener.openPost(post)
 
 
             }
-            postLayout.setOnClickListener { onIteractionLister.openPost(post) }
-            avatar.setOnClickListener { onIteractionLister.openPost(post) }
-            author.setOnClickListener { onIteractionLister.openPost(post) }
-            published.setOnClickListener { onIteractionLister.openPost(post) }
-            imageHolder.setOnClickListener { onIteractionLister.openImage(post) }
+            postLayout.setOnClickListener { onInteractionListener.openPost(post) }
+            avatar.setOnClickListener { onInteractionListener.openPost(post) }
+            author.setOnClickListener { onInteractionListener.openPost(post) }
+            published.setOnClickListener { onInteractionListener.openPost(post) }
+            imageHolder.setOnClickListener { onInteractionListener.openImage(post) }
 
             menu.isVisible = post.ownedByMe  //Меню видно если пост наш
             menu.setOnClickListener {
@@ -179,12 +190,12 @@ class PostViewHolder(
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
                             R.id.remove -> {
-                                onIteractionLister.remove(post)
+                                onInteractionListener.remove(post)
                                 true
                             }
 
                             R.id.edit -> {
-                                onIteractionLister.edit(post)
+                                onInteractionListener.edit(post)
                                 true
                             }
 
@@ -197,31 +208,32 @@ class PostViewHolder(
         }
     }
 
-    fun bind(payload: PayLoad) {//для исправления анимации мерцания RecylerView
-        payload.likedByMe?.let {
-            binding.btnLike.isChecked = it
-            if (it){
-                ObjectAnimator.ofPropertyValuesHolder(
-                    binding.btnLike,
-                PropertyValuesHolder.ofFloat(View.SCALE_X, 1.0F, 1.2F),
-                PropertyValuesHolder.ofFloat(View.SCALE_Y, 1.0F, 1.2F)
-                )
-            } else {
-                ObjectAnimator.ofFloat(binding.btnLike,View.ROTATION, 0F, 360F)
+//    fun bind(payload: PayLoad) {//для исправления анимации мерцания RecylerView
+//        payload.likedByMe?.let {
+//            binding.btnLike.isChecked = it
+////            if (it){
+////                ObjectAnimator.ofPropertyValuesHolder(
+////                    binding.btnLike,
+////                PropertyValuesHolder.ofFloat(View.SCALE_X, 1.0F, 1.2F),
+////                PropertyValuesHolder.ofFloat(View.SCALE_Y, 1.0F, 1.2F)
+////                )
+////            } else {
+////                ObjectAnimator.ofFloat(binding.btnLike,View.ROTATION, 0F, 360F)
+////
+////            }.start()
+//        }
+//        payload.content?.let {
+//            binding.content.text = it
+//        }
+//    }
 
-            }.start()
-        }
-        payload.content?.let {
-            binding.content.text = it
-        }
-    }
 }
 
-data class PayLoad(
-    //класс для исправления анимации мерцания RecylerView
-    val likedByMe: Boolean? = null,
-    val content: String? = null,
-)
+//data class PayLoad(
+//    //класс для исправления анимации мерцания RecylerView
+//    val likedByMe: Boolean? = null,
+//    val content: String? = null,
+//)
 
 class PostDiffCallback : DiffUtil.ItemCallback<FeedItem>() {
     override fun areItemsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
@@ -234,12 +246,12 @@ class PostDiffCallback : DiffUtil.ItemCallback<FeedItem>() {
         return oldItem == newItem
     }
 
-    override fun getChangePayload(oldItem: FeedItem, newItem: FeedItem): Any =
-//метод для исправления анимации мерцания RecylerView
-        PayLoad(
-            likedByMe = (newItem as Post).likedByMe.takeIf { it != (oldItem as Post).likedByMe },
-            content = (newItem as Post).content.takeIf { it != (oldItem as Post).content },
-        )
+//    override fun getChangePayload(oldItem: FeedItem, newItem: FeedItem): Any =
+////метод для исправления анимации мерцания RecylerView
+//        PayLoad(
+//            likedByMe = (newItem as Post).likedByMe.takeIf { it != (oldItem as Post).likedByMe },
+//            content = (newItem as Post).content.takeIf { it != (oldItem as Post).content },
+//        )
 
 
 }

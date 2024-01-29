@@ -13,9 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.paging.PagingData
 import androidx.paging.filter
-import androidx.paging.map
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -23,8 +21,7 @@ import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
 import ru.netologia.nmedia.databinding.FragmentPostBinding
 import ru.netologia.nmedia.dto.Post
-import ru.netologia.nmedia.util.AndroidUtils.toList
-import ru.netologia.nmedia.viewmodel.OnIteractionLister
+import ru.netologia.nmedia.viewmodel.OnInteractionListener
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
 
@@ -39,7 +36,7 @@ class PostFragment : Fragment() {
     ): View {
         val binding = FragmentPostBinding.inflate(layoutInflater)
 
-        val adapter = PostsAdapter(object : OnIteractionLister {
+        val adapter = PostsAdapter(object : OnInteractionListener {
 
             override fun like(post: Post) {
                 viewModel.likeById(post.id, post.likedByMe)
