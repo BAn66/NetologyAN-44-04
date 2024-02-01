@@ -18,7 +18,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netologia.nmedia.R
@@ -26,7 +25,7 @@ import ru.netologia.nmedia.auth.AppAuth
 import ru.netologia.nmedia.databinding.FragmentFeedBinding
 import ru.netologia.nmedia.dto.Post
 import ru.netologia.nmedia.model.FeedModelState
-import ru.netologia.nmedia.viewmodel.OnIteractionLister
+import ru.netologia.nmedia.viewmodel.OnInteractionListener
 import ru.netologia.nmedia.viewmodel.PostLoadingStateAdapter
 import ru.netologia.nmedia.viewmodel.PostViewModel
 import ru.netologia.nmedia.viewmodel.PostsAdapter
@@ -66,7 +65,7 @@ class FeedFragment : Fragment() {
         val binding =
             FragmentFeedBinding.inflate(layoutInflater) // Работаем через надутый интерфейс с buildFeatures.viewBinding = true из build,gradle app
 
-        val adapter = PostsAdapter(object : OnIteractionLister {
+        val adapter = PostsAdapter(object : OnInteractionListener {
 
 
             override fun like(post: Post) {
